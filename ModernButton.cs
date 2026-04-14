@@ -4,7 +4,7 @@ using System.Drawing.Drawing2D;
 namespace AudioPlayer;
 
 /// <summary>
-/// Custom-drawn button with rounded corners, hover animation, and keyboard activation.
+/// Custom-drawn button. Supports solid, ghost, and pill variants.
 /// </summary>
 public sealed class ModernButton : Control
 {
@@ -27,18 +27,30 @@ public sealed class ModernButton : Control
         Cursor = Cursors.Hand;
         TabStop = true;
         Font = new Font("Segoe UI", 9.5f, FontStyle.Regular);
-        ForeColor = Color.White;
+        ForeColor = Color.FromArgb(210, 225, 255);
 
         animTimer = new System.Windows.Forms.Timer { Interval = 16 };
         animTimer.Tick += OnAnimTick;
     }
 
+    /// <summary>Background fill color (ignored when IsGhost = true).</summary>
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public Color AccentColor
     {
         get => accentColor;
         set { accentColor = value; Invalidate(); }
     }
+
+    /// <summary>When true, renders as a fully-rounded pill shape.</summary>
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public bool Pill { get; set; } = false;
+
+    /// <summary>
+    /// When true, renders transparent with a subtle border instead of a filled background.
+    /// On hover a very light tint of AccentColor is shown.
+    /// </summary>
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public bool IsGhost { get; set; } = false;
 
     private void OnAnimTick(object? sender, EventArgs e)
     {
@@ -113,17 +125,8 @@ public sealed class ModernButton : Control
         }
     }
 
-    protected override void OnGotFocus(EventArgs e)
-    {
-        base.OnGotFocus(e);
-        Invalidate();
-    }
-
-    protected override void OnLostFocus(EventArgs e)
-    {
-        base.OnLostFocus(e);
-        Invalidate();
-    }
+    protected override void OnGotFocus(EventArgs e) { base.OnGotFocus(e); Invalidate(); }
+    protected override void OnLostFocus(EventArgs e) { base.OnLostFocus(e); Invalidate(); }
 
     protected override void OnPaint(PaintEventArgs e)
     {
@@ -133,46 +136,66 @@ public sealed class ModernButton : Control
         g.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
         var bounds = new RectangleF(0.5f, 0.5f, Width - 1f, Height - 1f);
-        const float radius = 8f;
-
-        // Lighten color on hover
-        var h = hoverAlpha;
-        var r = (int)(accentColor.R + (Math.Min(255, accentColor.R + 55) - accentColor.R) * h);
-        var gr = (int)(accentColor.G + (Math.Min(255, accentColor.G + 45) - accentColor.G) * h);
-        var b = (int)(accentColor.B + (Math.Min(255, accentColor.B + 55) - accentColor.B) * h);
-        var alpha = Enabled ? 255 : 130;
+        var radius = Pill ? Height / 2f : 8f;
         var pressShift = isPressed ? 1 : 0;
+        var h = hoverAlpha;
 
         using var path = CreateRoundedPath(bounds, radius);
-        using var fillBrush = new SolidBrush(Color.FromArgb(alpha, r, gr, b));
-        g.FillPath(fillBrush, path);
 
-        // Top gloss highlight
-        var glossBounds = new RectangleF(bounds.Left, bounds.Top, bounds.Width, bounds.Height / 2f);
-        using var glossPath = CreateRoundedPath(glossBounds, radius);
-        using var glossBrush = new LinearGradientBrush(
-            new PointF(0, bounds.Top),
-            new PointF(0, bounds.Top + bounds.Height / 2f),
-            Color.FromArgb(45, 255, 255, 255),
-            Color.FromArgb(0, 255, 255, 255));
-        g.FillPath(glossBrush, glossPath);
+        if (IsGhost)
+        {
+            // Ghost: transparent → subtle tint on hover
+            if (h > 0.01f)
+            {
+                var tintAlpha = (int)(h * 38);
+                using var tintBrush = new SolidBrush(Color.FromArgb(tintAlpha, accentColor));
+                g.FillPath(tintBrush, path);
+            }
 
-        // Border
-        var borderAlpha = (int)(30 + hoverAlpha * 90);
-        using var borderPen = new Pen(Color.FromArgb(borderAlpha, 180, 220, 255), 1f);
-        g.DrawPath(borderPen, path);
+            // Border: more visible on hover
+            var borderAlpha = (int)(55 + h * 110);
+            using var borderPen = new Pen(Color.FromArgb(borderAlpha, 130, 155, 205), 1.5f);
+            g.DrawPath(borderPen, path);
+        }
+        else
+        {
+            // Solid: base color that lightens on hover
+            var r  = (int)(accentColor.R + (Math.Min(255, accentColor.R + 50) - accentColor.R) * h);
+            var gr = (int)(accentColor.G + (Math.Min(255, accentColor.G + 42) - accentColor.G) * h);
+            var b  = (int)(accentColor.B + (Math.Min(255, accentColor.B + 50) - accentColor.B) * h);
+            var alpha = Enabled ? 255 : 120;
+
+            using var fillBrush = new SolidBrush(Color.FromArgb(alpha, r, gr, b));
+            g.FillPath(fillBrush, path);
+
+            // Subtle top-edge gloss
+            var halfBounds = new RectangleF(bounds.Left, bounds.Top, bounds.Width, bounds.Height * 0.5f);
+            using var glossPath = CreateRoundedPath(halfBounds, radius);
+            using var glossBrush = new LinearGradientBrush(
+                new PointF(0, bounds.Top),
+                new PointF(0, bounds.Top + bounds.Height * 0.5f),
+                Color.FromArgb(35, 255, 255, 255),
+                Color.FromArgb(0, 255, 255, 255));
+            g.FillPath(glossBrush, glossPath);
+
+            // Subtle border
+            var borderAlpha = (int)(18 + h * 50);
+            using var borderPen = new Pen(Color.FromArgb(borderAlpha, 220, 250, 255), 1f);
+            g.DrawPath(borderPen, path);
+        }
 
         // Focus ring
         if (Focused)
         {
-            var focusBounds = new RectangleF(bounds.Left - 2, bounds.Top - 2, bounds.Width + 4, bounds.Height + 4);
-            using var focusPath = CreateRoundedPath(focusBounds, radius + 2);
-            using var focusPen = new Pen(Color.FromArgb(160, 140, 200, 255), 1.5f);
+            var fb = new RectangleF(bounds.Left - 2, bounds.Top - 2, bounds.Width + 4, bounds.Height + 4);
+            using var focusPath = CreateRoundedPath(fb, radius + 2);
+            using var focusPen = new Pen(Color.FromArgb(150, 140, 195, 255), 1.5f);
             g.DrawPath(focusPen, focusPath);
         }
 
         // Text
-        using var textBrush = new SolidBrush(Enabled ? ForeColor : Color.FromArgb(100, ForeColor));
+        var textAlpha = Enabled ? (IsGhost ? (int)(140 + h * 90) : 255) : 80;
+        using var textBrush = new SolidBrush(Color.FromArgb(textAlpha, ForeColor));
         using var sf = new StringFormat
         {
             Alignment = StringAlignment.Center,
@@ -188,11 +211,7 @@ public sealed class ModernButton : Control
     {
         var path = new GraphicsPath();
         var r = Math.Min(radius, Math.Min(bounds.Width, bounds.Height) / 2f);
-        if (r < 0.5f)
-        {
-            path.AddRectangle(bounds);
-            return path;
-        }
+        if (r < 0.5f) { path.AddRectangle(bounds); return path; }
         var d = r * 2;
         path.AddArc(bounds.Left, bounds.Top, d, d, 180, 90);
         path.AddArc(bounds.Right - d, bounds.Top, d, d, 270, 90);

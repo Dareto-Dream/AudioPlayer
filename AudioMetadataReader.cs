@@ -1,0 +1,72 @@
+using System.Linq;
+using TagLib;
+
+namespace AudioPlayer;
+
+internal static class AudioMetadataReader
+{
+    public static AudioFileMetadata Read(string path)
+    {
+        try
+        {
+            using var file = TagLib.File.Create(path);
+            var tag = file.Tag;
+
+            return new AudioFileMetadata(
+                Normalize(tag.Title),
+                FirstNonEmpty(JoinDistinct(tag.Performers), JoinDistinct(tag.AlbumArtists), JoinDistinct(tag.Composers)),
+                Normalize(tag.Album),
+                ExtractAlbumArt(tag.Pictures));
+        }
+        catch
+        {
+            return AudioFileMetadata.Empty;
+        }
+    }
+
+    private static string? JoinDistinct(string[] values)
+    {
+        var normalized = values
+            .Where(static value => !string.IsNullOrWhiteSpace(value))
+            .Select(static value => value.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        return normalized.Length == 0 ? null : string.Join(", ", normalized);
+    }
+
+    private static string? Normalize(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+    private static string? FirstNonEmpty(params string?[] values)
+    {
+        foreach (var value in values)
+        {
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                return value.Trim();
+            }
+        }
+
+        return null;
+    }
+
+    private static byte[]? ExtractAlbumArt(IPicture[] pictures)
+    {
+        var picture = pictures.FirstOrDefault(static candidate => candidate.Type == PictureType.FrontCover)
+            ?? pictures.FirstOrDefault();
+
+        return picture?.Data?.Data is { Length: > 0 } data
+            ? data.ToArray()
+            : null;
+    }
+}
+
+internal sealed record AudioFileMetadata(
+    string? Title,
+    string? Artist,
+    string? Album,
+    byte[]? AlbumArtBytes)
+{
+    public static AudioFileMetadata Empty { get; } = new(null, null, null, null);
+}

@@ -1,4 +1,5 @@
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.IO;
 
 namespace AudioPlayer;
@@ -13,6 +14,7 @@ public partial class Form1 : Form
     private bool showRemainingTime;
     private bool isMuted;
     private float preMuteVolume = 0.85f;
+    private AudioTrackInfo? displayedArtworkTrack;
 
     public Form1(string? startupPath = null)
     {
@@ -257,6 +259,7 @@ public partial class Form1 : Form
     protected override void OnFormClosed(FormClosedEventArgs e)
     {
         timer1.Stop();
+        DisposeDisplayedArtwork();
         engine.Dispose();
         base.OnFormClosed(e);
     }
@@ -266,12 +269,7 @@ public partial class Form1 : Form
     private void ApplyTheme()
     {
         ForeColor = Color.FromArgb(220, 232, 255);
-
-        // Status strip dark renderer
         statusStrip1.Renderer = new DarkStatusStripRenderer();
-
-        // Checkbox styling
-        chkPeakHold.ForeColor = Color.FromArgb(185, 200, 230);
     }
 
     private void PopulateSettings()
@@ -398,6 +396,7 @@ public partial class Form1 : Form
     private void UpdateUiState()
     {
         var track = engine.CurrentTrack;
+        UpdateAlbumArt(track);
 
         // Play/Pause button text
         btnPlayPause.Text = track is null
@@ -410,24 +409,24 @@ public partial class Form1 : Form
 
         // Now-playing header
         lblNowPlaying.Text = track?.DisplayName ?? "Drop audio here or use Open";
-        lblTrackInfo.Text = track is null
-            ? "Supports MP3, WAV, FLAC, AAC, M4A, WMA, OGG Vorbis, AIFF, Opus, WebM, 3GP and more through installed Windows codecs."
-            : $"{track.FormatName}  \u00b7  {track.Channels} ch  \u00b7  {track.SourceSampleRate / 1000d:0.#} kHz  \u00b7  {FormatBitDepth(track.BitsPerSample)}  \u00b7  {FormatTime((float)track.Duration.TotalSeconds)}";
+        lblTrackInfo.Text = BuildTrackInfoText(track);
 
         // Volume label & mute button
         if (isMuted || trackBarVolume.Value == 0)
         {
-            lblVolumeValue.Text = "Muted";
-            lblVolumeValue.ForeColor = Color.FromArgb(150, 155, 175);
-            btnMute.Text = "Unmute";
-            btnMute.AccentColor = Color.FromArgb(90, 60, 60);
+            lblVolumeValue.Text      = "Muted";
+            lblVolumeValue.ForeColor = Color.FromArgb(100, 108, 140);
+            btnMute.Text             = "Unmute";
+            btnMute.AccentColor      = Color.FromArgb(160, 65, 72);
+            btnMute.ForeColor        = Color.FromArgb(210, 130, 135);
         }
         else
         {
-            lblVolumeValue.Text = $"{trackBarVolume.Value}%";
-            lblVolumeValue.ForeColor = Color.FromArgb(200, 220, 255);
-            btnMute.Text = "Mute";
-            btnMute.AccentColor = Color.FromArgb(38, 52, 90);
+            lblVolumeValue.Text      = $"{trackBarVolume.Value}%";
+            lblVolumeValue.ForeColor = Color.FromArgb(155, 175, 220);
+            btnMute.Text             = "Mute";
+            btnMute.AccentColor      = Color.FromArgb(70, 92, 160);
+            btnMute.ForeColor        = Color.FromArgb(140, 158, 205);
         }
 
         // Status bar
@@ -437,14 +436,14 @@ public partial class Form1 : Form
             : Math.Abs(engine.GetPosition()) < 0.01f ? "Loaded" : "Paused";
 
         toolStripStatusLabel.ForeColor = engine.IsPlaying
-            ? Color.FromArgb(100, 230, 160)
-            : Color.FromArgb(155, 170, 205);
+            ? Color.FromArgb(52, 211, 153)   // matches play button accent
+            : Color.FromArgb(80, 100, 148);
 
         toolStripOutputLabel.Text = engine.IsLoaded
             ? $"Output  {engine.EffectiveSampleRate / 1000d:0.#} kHz"
             : $"Output  {GetSelectedSampleRateLabel()}";
 
-        Text = track is null ? "Audio Player" : $"{track.DisplayName}  \u2014  Audio Player";
+        Text = track is null ? "Audio Player" : BuildWindowTitle(track);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────
@@ -463,6 +462,161 @@ public partial class Form1 : Form
     private static string FormatBitDepth(int bitsPerSample) =>
         bitsPerSample > 0 ? $"{bitsPerSample}-bit" : "float";
 
+    private static string BuildTrackInfoText(AudioTrackInfo? track)
+    {
+        if (track is null)
+        {
+            return "Supports MP3, WAV, FLAC, AAC, M4A, WMA, OGG Vorbis, AIFF, Opus, WebM, 3GP and more through installed Windows codecs.";
+        }
+
+        var descriptiveParts = new List<string>();
+        if (!string.IsNullOrWhiteSpace(track.Artist))
+        {
+            descriptiveParts.Add(track.Artist);
+        }
+
+        if (!string.IsNullOrWhiteSpace(track.Album))
+        {
+            descriptiveParts.Add(track.Album);
+        }
+
+        var technicalLine =
+            $"{track.FormatName}  \u00b7  {track.Channels} ch  \u00b7  {track.SourceSampleRate / 1000d:0.#} kHz  \u00b7  {FormatBitDepth(track.BitsPerSample)}  \u00b7  {FormatTime((float)track.Duration.TotalSeconds)}";
+
+        return descriptiveParts.Count == 0
+            ? technicalLine
+            : $"{string.Join("  \u00b7  ", descriptiveParts)}{Environment.NewLine}{technicalLine}";
+    }
+
+    private static string BuildWindowTitle(AudioTrackInfo track) =>
+        string.IsNullOrWhiteSpace(track.Artist)
+            ? $"{track.DisplayName}  \u2014  Audio Player"
+            : $"{track.Artist} - {track.DisplayName}  \u2014  Audio Player";
+
+    private void UpdateAlbumArt(AudioTrackInfo? track)
+    {
+        if (ReferenceEquals(displayedArtworkTrack, track) && picAlbumArt.Image is not null)
+        {
+            return;
+        }
+
+        displayedArtworkTrack = track;
+        DisposeDisplayedArtwork();
+        picAlbumArt.Image = CreateArtworkImage(track);
+    }
+
+    private void DisposeDisplayedArtwork()
+    {
+        if (picAlbumArt.Image is null)
+        {
+            return;
+        }
+
+        var image = picAlbumArt.Image;
+        picAlbumArt.Image = null;
+        image.Dispose();
+    }
+
+    private static Image CreateArtworkImage(AudioTrackInfo? track)
+    {
+        if (track?.AlbumArtBytes is { Length: > 0 } bytes)
+        {
+            try
+            {
+                return LoadArtwork(bytes);
+            }
+            catch
+            {
+                // Fall back to generated artwork when embedded art cannot be decoded.
+            }
+        }
+
+        return CreateFallbackArtwork(track);
+    }
+
+    private static Image LoadArtwork(byte[] bytes)
+    {
+        using var stream = new MemoryStream(bytes);
+        using var image = Image.FromStream(stream, useEmbeddedColorManagement: true, validateImageData: true);
+        return new Bitmap(image);
+    }
+
+    private static Image CreateFallbackArtwork(AudioTrackInfo? track)
+    {
+        const int size = 240;
+        var bitmap = new Bitmap(size, size);
+        var accent = GetArtworkAccent(track);
+        var shadow = ControlPaint.Dark(accent, 0.35f);
+
+        using var graphics = Graphics.FromImage(bitmap);
+        graphics.SmoothingMode = SmoothingMode.AntiAlias;
+
+        using (var gradient = new LinearGradientBrush(new Rectangle(0, 0, size, size), accent, shadow, 45f))
+        {
+            graphics.FillRectangle(gradient, 0, 0, size, size);
+        }
+
+        using (var overlayBrush = new SolidBrush(Color.FromArgb(36, 255, 255, 255)))
+        {
+            graphics.FillEllipse(overlayBrush, -30, -10, 150, 150);
+            graphics.FillEllipse(overlayBrush, 90, 120, 170, 170);
+        }
+
+        using var framePen = new Pen(Color.FromArgb(28, 255, 255, 255), 2f);
+        graphics.DrawRectangle(framePen, 1, 1, size - 3, size - 3);
+
+        using var textBrush = new SolidBrush(Color.FromArgb(245, 248, 255));
+        using var textFormat = new StringFormat
+        {
+            Alignment = StringAlignment.Center,
+            LineAlignment = StringAlignment.Center
+        };
+        using var titleFont = new Font("Segoe UI Semibold", 70f, FontStyle.Bold, GraphicsUnit.Point);
+        graphics.DrawString(GetArtworkInitials(track), titleFont, textBrush, new RectangleF(0, 0, size, size), textFormat);
+
+        return bitmap;
+    }
+
+    private static Color GetArtworkAccent(AudioTrackInfo? track)
+    {
+        var seed = $"{track?.DisplayName}|{track?.Artist}|{track?.Album}";
+
+        unchecked
+        {
+            var hash = 17;
+            foreach (var character in seed)
+            {
+                hash = (hash * 31) + character;
+            }
+
+            return Color.FromArgb(
+                255,
+                72 + Math.Abs(hash % 72),
+                88 + Math.Abs((hash / 7) % 80),
+                120 + Math.Abs((hash / 13) % 84));
+        }
+    }
+
+    private static string GetArtworkInitials(AudioTrackInfo? track)
+    {
+        if (track is null)
+        {
+            return "AP";
+        }
+
+        var source = !string.IsNullOrWhiteSpace(track.Album)
+            ? track.Album
+            : track.DisplayName;
+
+        var initials = string.Concat(
+            source
+                .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Take(2)
+                .Select(static part => char.ToUpperInvariant(part[0])));
+
+        return string.IsNullOrWhiteSpace(initials) ? "AP" : initials;
+    }
+
     private void ShowError(string message, string title)
     {
         MessageBox.Show(this, message, title, MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -480,25 +634,28 @@ public partial class Form1 : Form
         public override string ToString() => Label;
     }
 
-    // Dark renderer for the status strip
+    // Dark renderer for the status strip — matches form background exactly
     private sealed class DarkStatusStripRenderer : ToolStripProfessionalRenderer
     {
+        // rgb(10,13,22) matches the form BackColor
+        private static readonly Color BgColor = Color.FromArgb(10, 13, 22);
+
         public DarkStatusStripRenderer() : base(new DarkColorTable()) { }
 
         protected override void OnRenderToolStripBackground(ToolStripRenderEventArgs e)
         {
-            using var brush = new SolidBrush(Color.FromArgb(10, 14, 26));
+            using var brush = new SolidBrush(BgColor);
             e.Graphics.FillRectangle(brush, e.AffectedBounds);
         }
 
         protected override void OnRenderLabelBackground(ToolStripItemRenderEventArgs e) { }
-
         protected override void OnRenderSeparator(ToolStripSeparatorRenderEventArgs e) { }
     }
 
     private sealed class DarkColorTable : ProfessionalColorTable
     {
-        public override Color StatusStripGradientBegin => Color.FromArgb(10, 14, 26);
-        public override Color StatusStripGradientEnd   => Color.FromArgb(10, 14, 26);
+        private static readonly Color Bg = Color.FromArgb(10, 13, 22);
+        public override Color StatusStripGradientBegin => Bg;
+        public override Color StatusStripGradientEnd   => Bg;
     }
 }

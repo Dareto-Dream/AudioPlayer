@@ -39,8 +39,9 @@ public sealed class AudioEngine : IDisposable
     {
         DisposePlayback();
 
+        var metadata = AudioMetadataReader.Read(path);
         playbackStream = OpenPlaybackStream(path, out var formatName);
-        CurrentTrack = BuildTrackInfo(path, playbackStream, formatName);
+        CurrentTrack = BuildTrackInfo(path, playbackStream, formatName, metadata);
         CreateOutputChain(TimeSpan.Zero, resumePlayback: false);
     }
 
@@ -155,18 +156,39 @@ public sealed class AudioEngine : IDisposable
         }
     }
 
-    private static AudioTrackInfo BuildTrackInfo(string path, WaveStream stream, string formatName)
+    private static AudioTrackInfo BuildTrackInfo(
+        string path,
+        WaveStream stream,
+        string formatName,
+        AudioFileMetadata metadata)
     {
-        var displayName = Path.GetFileNameWithoutExtension(path);
+        var fallbackDisplayName = Path.GetFileNameWithoutExtension(path);
+        var displayName = FirstNonEmpty(metadata.Title, fallbackDisplayName, Path.GetFileName(path));
 
         return new AudioTrackInfo(
             path,
             string.IsNullOrWhiteSpace(displayName) ? Path.GetFileName(path) : displayName,
+            metadata.Artist,
+            metadata.Album,
+            metadata.AlbumArtBytes,
             formatName,
             Math.Max(1, stream.WaveFormat.Channels),
             stream.WaveFormat.SampleRate,
             stream.WaveFormat.BitsPerSample,
             stream.TotalTime);
+    }
+
+    private static string? FirstNonEmpty(params string?[] values)
+    {
+        foreach (var value in values)
+        {
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                return value.Trim();
+            }
+        }
+
+        return null;
     }
 
     private static WaveStream OpenPlaybackStream(string path, out string formatName)
