@@ -410,6 +410,7 @@ public partial class Form1 : Form
         // Now-playing header
         lblNowPlaying.Text = track?.DisplayName ?? "Drop audio here or use Open";
         lblTrackInfo.Text = BuildTrackInfoText(track);
+        lyricsView.UpdateState(track, engine.GetPosition());
 
         // Volume label & mute button
         if (isMuted || trackBarVolume.Value == 0)
@@ -482,6 +483,13 @@ public partial class Form1 : Form
 
         var technicalLine =
             $"{track.FormatName}  \u00b7  {track.Channels} ch  \u00b7  {track.SourceSampleRate / 1000d:0.#} kHz  \u00b7  {FormatBitDepth(track.BitsPerSample)}  \u00b7  {FormatTime((float)track.Duration.TotalSeconds)}";
+
+        if (track.Lyrics is not null)
+        {
+            technicalLine += track.Lyrics.HasWordTimings
+                ? "  \u00b7  Enhanced lyrics"
+                : "  \u00b7  Synced lyrics";
+        }
 
         return descriptiveParts.Count == 0
             ? technicalLine

@@ -6,6 +6,7 @@ public sealed record AudioTrackInfo(
     string? Artist,
     string? Album,
     byte[]? AlbumArtBytes,
+    LyricsDocument? Lyrics,
     string FormatName,
     int Channels,
     int SourceSampleRate,

@@ -6,6 +6,7 @@ namespace AudioPlayer
 
         // ── Layout ─────────────────────────────────────────────────────────
         private System.Windows.Forms.TableLayoutPanel rootLayout;
+        private System.Windows.Forms.TableLayoutPanel contentLayout;
         private System.Windows.Forms.TableLayoutPanel trackInfoPanel;
         private System.Windows.Forms.TableLayoutPanel seekLayout;
         private System.Windows.Forms.TableLayoutPanel transportLayout;
@@ -21,6 +22,7 @@ namespace AudioPlayer
 
         // ── Visualizer ─────────────────────────────────────────────────────
         private SpectrumVisualizerControl visualizerControl;
+        private LyricsViewControl lyricsView;
 
         // ── Seek bar ───────────────────────────────────────────────────────
         private System.Windows.Forms.Label lblCurrentTime;
@@ -66,6 +68,7 @@ namespace AudioPlayer
             components = new System.ComponentModel.Container();
 
             rootLayout       = new System.Windows.Forms.TableLayoutPanel();
+            contentLayout    = new System.Windows.Forms.TableLayoutPanel();
             trackInfoPanel   = new System.Windows.Forms.TableLayoutPanel();
             seekLayout       = new System.Windows.Forms.TableLayoutPanel();
             transportLayout  = new System.Windows.Forms.TableLayoutPanel();
@@ -79,6 +82,7 @@ namespace AudioPlayer
             lblTrackInfo      = new System.Windows.Forms.Label();
 
             visualizerControl = new SpectrumVisualizerControl();
+            lyricsView        = new LyricsViewControl();
 
             lblCurrentTime = new System.Windows.Forms.Label();
             trackBarSeek   = new ModernSlider();
@@ -110,6 +114,7 @@ namespace AudioPlayer
             toolTip1             = new System.Windows.Forms.ToolTip(components);
 
             rootLayout.SuspendLayout();
+            contentLayout.SuspendLayout();
             trackInfoPanel.SuspendLayout();
             seekLayout.SuspendLayout();
             transportLayout.SuspendLayout();
@@ -125,7 +130,7 @@ namespace AudioPlayer
             rootLayout.ColumnCount = 1;
             rootLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
             rootLayout.Controls.Add(trackInfoPanel,  0, 0);
-            rootLayout.Controls.Add(visualizerControl, 0, 1);
+            rootLayout.Controls.Add(contentLayout, 0, 1);
             rootLayout.Controls.Add(seekLayout,      0, 2);
             rootLayout.Controls.Add(transportLayout, 0, 3);
             rootLayout.Controls.Add(settingsPanel,   0, 4);
@@ -140,6 +145,18 @@ namespace AudioPlayer
             rootLayout.RowStyles.Add(new System.Windows.Forms.RowStyle());                                                    // 3 transport
             rootLayout.RowStyles.Add(new System.Windows.Forms.RowStyle());                                                    // 4 settings
             rootLayout.TabIndex = 0;
+
+            contentLayout.ColumnCount = 2;
+            contentLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 58F));
+            contentLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 42F));
+            contentLayout.Controls.Add(visualizerControl, 0, 0);
+            contentLayout.Controls.Add(lyricsView, 1, 0);
+            contentLayout.Dock      = System.Windows.Forms.DockStyle.Fill;
+            contentLayout.Margin    = new System.Windows.Forms.Padding(0);
+            contentLayout.Name      = "contentLayout";
+            contentLayout.RowCount  = 1;
+            contentLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            contentLayout.TabIndex  = 1;
 
             // ════════════════════════════════════════════════════════════════
             // trackInfoPanel  — stacks: caption / title / metadata
@@ -213,6 +230,13 @@ namespace AudioPlayer
             visualizerControl.Name   = "visualizerControl";
             visualizerControl.ShowPeaks = true;
             visualizerControl.TabIndex  = 1;
+
+            lyricsView.BackColor   = System.Drawing.Color.FromArgb(14, 19, 32);
+            lyricsView.Dock        = System.Windows.Forms.DockStyle.Fill;
+            lyricsView.Margin      = new System.Windows.Forms.Padding(16, 0, 0, 0);
+            lyricsView.MinimumSize = new System.Drawing.Size(280, 0);
+            lyricsView.Name        = "lyricsView";
+            lyricsView.TabIndex    = 2;
 
             // ════════════════════════════════════════════════════════════════
             // seekLayout  — time / slider / time
@@ -543,6 +567,7 @@ namespace AudioPlayer
             Load               += Form1_Load;
 
             rootLayout.ResumeLayout(false);
+            contentLayout.ResumeLayout(false);
             trackInfoPanel.ResumeLayout(false);
             trackInfoPanel.PerformLayout();
             seekLayout.ResumeLayout(false);
