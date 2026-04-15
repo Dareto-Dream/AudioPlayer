@@ -5,6 +5,24 @@ namespace AudioPlayer;
 
 public sealed class SpectrumVisualizerControl : Control
 {
+    private static readonly Color BackgroundTopColor = Color.FromArgb(24, 19, 24);
+    private static readonly Color BackgroundBottomColor = Color.FromArgb(10, 8, 12);
+    private static readonly Color AmbientGlowColor = Color.FromArgb(244, 152, 82);
+    private static readonly Color AmbientGridColor = Color.FromArgb(159, 121, 88);
+    private static readonly Color BarGlowColor = Color.FromArgb(238, 144, 94);
+    private static readonly Color BarStartColor = Color.FromArgb(248, 188, 98);
+    private static readonly Color BarEndColor = Color.FromArgb(226, 111, 80);
+    private static readonly Color PeakColor = Color.FromArgb(255, 235, 189);
+    private static readonly Color HudLabelColor = Color.FromArgb(244, 236, 227);
+    private static readonly Color HudInfoColor = Color.FromArgb(191, 174, 159);
+    private static readonly Color PlaceholderColor = Color.FromArgb(188, 175, 161);
+    private static readonly Color DiskFillColor = Color.FromArgb(34, 29, 35);
+    private static readonly Color DiskGrooveColor = Color.FromArgb(168, 143, 120);
+    private static readonly Color HubColor = Color.FromArgb(20, 17, 22);
+    private static readonly Color HubDotColor = Color.FromArgb(176, 132, 93);
+    private static readonly Color RingColor = Color.FromArgb(173, 124, 90);
+    private static readonly Color IdleLabelColor = Color.FromArgb(170, 156, 145);
+
     private readonly float[] spectrumLevels = new float[64];
     private readonly float[] peakHoldLevels = new float[64];
     private readonly float[] waveformPoints = new float[256];
@@ -15,6 +33,8 @@ public sealed class SpectrumVisualizerControl : Control
     private float peakLevel;
     private float rmsLevel;
     private bool isActive;
+    private Image? albumArt;
+    private float diskAngle;
 
     public SpectrumVisualizerControl()
     {
@@ -27,8 +47,8 @@ public sealed class SpectrumVisualizerControl : Control
             ControlStyles.ResizeRedraw,
             true);
 
-        BackColor = Color.FromArgb(8, 12, 24);
-        ForeColor = Color.FromArgb(98, 242, 199);
+        BackColor = BackgroundTopColor;
+        ForeColor = BarStartColor;
     }
 
     [DefaultValue(VisualizerMode.MirrorSpectrum)]
@@ -53,6 +73,14 @@ public sealed class SpectrumVisualizerControl : Control
             showPeaks = value;
             Invalidate();
         }
+    }
+
+    /// <summary>Album art displayed in SpinningDisk mode. Not owned/disposed by this control.</summary>
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public Image? AlbumArt
+    {
+        get => albumArt;
+        set { albumArt = value; Invalidate(); }
     }
 
     [DefaultValue(1f)]
@@ -89,6 +117,9 @@ public sealed class SpectrumVisualizerControl : Control
         peakLevel = Math.Max(frame.PeakLevel * sensitivity, peakLevel * (activePlayback ? 0.90f : 0.95f));
         rmsLevel = Math.Max(frame.RmsLevel * sensitivity, rmsLevel * (activePlayback ? 0.92f : 0.96f));
 
+        if (mode == VisualizerMode.SpinningDisk && activePlayback)
+            diskAngle = (diskAngle + 0.38f) % 360f;
+
         Invalidate();
     }
 
@@ -123,20 +154,22 @@ public sealed class SpectrumVisualizerControl : Control
         {
             case VisualizerMode.Spectrum:
                 DrawSpectrumBars(e.Graphics, bounds, mirrored: false);
+                DrawHud(e.Graphics, bounds);
+                if (IsNearSilence()) DrawPlaceholder(e.Graphics, bounds);
                 break;
             case VisualizerMode.MirrorSpectrum:
                 DrawSpectrumBars(e.Graphics, bounds, mirrored: true);
+                DrawHud(e.Graphics, bounds);
+                if (IsNearSilence()) DrawPlaceholder(e.Graphics, bounds);
                 break;
             case VisualizerMode.Waveform:
                 DrawWaveform(e.Graphics, bounds);
+                DrawHud(e.Graphics, bounds);
+                if (IsNearSilence()) DrawPlaceholder(e.Graphics, bounds);
                 break;
-        }
-
-        DrawHud(e.Graphics, bounds);
-
-        if (IsNearSilence())
-        {
-            DrawPlaceholder(e.Graphics, bounds);
+            case VisualizerMode.SpinningDisk:
+                DrawSpinningDisk(e.Graphics, bounds);
+                break;
         }
     }
 
@@ -146,8 +179,8 @@ public sealed class SpectrumVisualizerControl : Control
 
         using var backgroundBrush = new LinearGradientBrush(
             bounds,
-            Color.FromArgb(9, 13, 26),
-            Color.FromArgb(2, 6, 16),
+            BackgroundTopColor,
+            BackgroundBottomColor,
             LinearGradientMode.Vertical);
         graphics.FillRectangle(backgroundBrush, bounds);
 
@@ -161,14 +194,14 @@ public sealed class SpectrumVisualizerControl : Control
                 new Point(bounds.Left, bounds.Height / 3)
             })
         {
-            CenterColor = Color.FromArgb((int)(80 * glowStrength), 64, 204, 255),
+            CenterColor = Color.FromArgb((int)(92 * glowStrength), AmbientGlowColor),
             SurroundColors = new[]
             {
-                Color.FromArgb(0, 64, 204, 255),
-                Color.FromArgb(0, 64, 204, 255),
-                Color.FromArgb(0, 64, 204, 255),
-                Color.FromArgb(0, 64, 204, 255),
-                Color.FromArgb(0, 64, 204, 255)
+                Color.FromArgb(0, AmbientGlowColor),
+                Color.FromArgb(0, AmbientGlowColor),
+                Color.FromArgb(0, AmbientGlowColor),
+                Color.FromArgb(0, AmbientGlowColor),
+                Color.FromArgb(0, AmbientGlowColor)
             }
         };
         graphics.FillRectangle(accentBrush, bounds);
@@ -176,8 +209,8 @@ public sealed class SpectrumVisualizerControl : Control
 
     private void DrawGrid(Graphics graphics, Rectangle bounds)
     {
-        using var horizontalPen = new Pen(Color.FromArgb(22, 120, 160, 190));
-        using var verticalPen = new Pen(Color.FromArgb(14, 120, 160, 190));
+        using var horizontalPen = new Pen(Color.FromArgb(22, AmbientGridColor));
+        using var verticalPen = new Pen(Color.FromArgb(14, AmbientGridColor));
 
         for (var index = 1; index < 5; index++)
         {
@@ -202,13 +235,13 @@ public sealed class SpectrumVisualizerControl : Control
         var cornerRadius = Math.Max(4, barWidth / 2);
         var centerY = contentBounds.Top + (contentBounds.Height / 2);
 
-        using var glowBrush = new SolidBrush(Color.FromArgb(18, 56, 234, 242));
+        using var glowBrush = new SolidBrush(Color.FromArgb(22, BarGlowColor));
         using var fillBrush = new LinearGradientBrush(
             contentBounds,
-            Color.FromArgb(48, 213, 255),
-            Color.FromArgb(108, 255, 160),
+            BarStartColor,
+            BarEndColor,
             LinearGradientMode.Vertical);
-        using var peakPen = new Pen(Color.FromArgb(210, 255, 246, 158), 2);
+        using var peakPen = new Pen(Color.FromArgb(210, PeakColor), 2);
 
         for (var index = 0; index < displayBars; index++)
         {
@@ -262,19 +295,19 @@ public sealed class SpectrumVisualizerControl : Control
         var contentBounds = Rectangle.Inflate(bounds, -18, -24);
         var centerY = contentBounds.Top + (contentBounds.Height / 2f);
 
-        using var glowPen = new Pen(Color.FromArgb(36, 64, 224, 255), 8)
+        using var glowPen = new Pen(Color.FromArgb(40, AmbientGlowColor), 8)
         {
             StartCap = LineCap.Round,
             EndCap = LineCap.Round,
             LineJoin = LineJoin.Round
         };
-        using var wavePen = new Pen(Color.FromArgb(115, 255, 176), 3)
+        using var wavePen = new Pen(Color.FromArgb(240, BarStartColor), 3)
         {
             StartCap = LineCap.Round,
             EndCap = LineCap.Round,
             LineJoin = LineJoin.Round
         };
-        using var centerPen = new Pen(Color.FromArgb(80, 255, 255, 255), 1.5f);
+        using var centerPen = new Pen(Color.FromArgb(72, HudLabelColor), 1.5f);
 
         graphics.DrawLine(centerPen, contentBounds.Left, centerY, contentBounds.Right, centerY);
 
@@ -290,13 +323,13 @@ public sealed class SpectrumVisualizerControl : Control
         var meterHeight = 8;
         var meterRect = new Rectangle(hudBounds.Right - meterWidth, hudBounds.Top + 12, meterWidth, meterHeight);
 
-        using var labelBrush = new SolidBrush(Color.FromArgb(210, 228, 239, 255));
-        using var infoBrush = new SolidBrush(Color.FromArgb(164, 173, 194, 220));
-        using var meterBackBrush = new SolidBrush(Color.FromArgb(42, 255, 255, 255));
+        using var labelBrush = new SolidBrush(HudLabelColor);
+        using var infoBrush = new SolidBrush(HudInfoColor);
+        using var meterBackBrush = new SolidBrush(Color.FromArgb(42, 255, 245, 230));
         using var meterFillBrush = new LinearGradientBrush(
             meterRect,
-            Color.FromArgb(50, 223, 255),
-            Color.FromArgb(112, 255, 179),
+            BarStartColor,
+            BarEndColor,
             LinearGradientMode.Horizontal);
 
         graphics.DrawString(GetModeLabel(), Font, labelBrush, hudBounds.Left, hudBounds.Top);
@@ -319,7 +352,7 @@ public sealed class SpectrumVisualizerControl : Control
 
     private void DrawPlaceholder(Graphics graphics, Rectangle bounds)
     {
-        using var textBrush = new SolidBrush(Color.FromArgb(180, 191, 208, 230));
+        using var textBrush = new SolidBrush(PlaceholderColor);
         using var format = new StringFormat
         {
             Alignment = StringAlignment.Center,
@@ -349,12 +382,76 @@ public sealed class SpectrumVisualizerControl : Control
         return path;
     }
 
+    private void DrawSpinningDisk(Graphics g, Rectangle bounds)
+    {
+        var size = Math.Min(bounds.Width, bounds.Height) - 40;
+        if (size <= 0) return;
+        var cx = bounds.Left + bounds.Width / 2;
+        var cy = bounds.Top + bounds.Height / 2;
+        var diskRect = new Rectangle(cx - size / 2, cy - size / 2, size, size);
+
+        // --- rotated art (or solid dark fill) clipped to the disk circle ---
+        using var clipPath = new GraphicsPath();
+        clipPath.AddEllipse(diskRect);
+
+        var phase1 = g.Save();
+        g.SetClip(clipPath, CombineMode.Intersect);
+
+        if (albumArt != null)
+        {
+            var phase2 = g.Save();
+            g.TranslateTransform(cx, cy);
+            g.RotateTransform(diskAngle);
+            g.DrawImage(albumArt, -size / 2f, -size / 2f, size, size);
+            g.Restore(phase2);
+
+            // Slight darkening so grooves read on bright covers
+            using var tint = new SolidBrush(Color.FromArgb(48, 0, 0, 0));
+            g.FillEllipse(tint, diskRect);
+        }
+        else
+        {
+            using var fill = new SolidBrush(DiskFillColor);
+            g.FillEllipse(fill, diskRect);
+        }
+
+        // Vinyl groove lines
+        var grooveAlpha = albumArt != null ? 20 : 45;
+        using var groovePen = new Pen(Color.FromArgb(grooveAlpha, DiskGrooveColor), 1f);
+        for (var r = size / 5; r < size / 2 - 4; r += 10)
+            g.DrawEllipse(groovePen, cx - r, cy - r, r * 2, r * 2);
+
+        g.Restore(phase1);
+
+        // --- center hub (drawn over clip, unclipped) ---
+        var hub = Math.Max(22, size / 6);
+        using var hubBrush = new SolidBrush(HubColor);
+        g.FillEllipse(hubBrush, cx - hub / 2, cy - hub / 2, hub, hub);
+
+        var dot = Math.Max(6, hub / 3);
+        using var dotBrush = new SolidBrush(HubDotColor);
+        g.FillEllipse(dotBrush, cx - dot / 2, cy - dot / 2, dot, dot);
+
+        // Outer edge ring
+        using var ring = new Pen(Color.FromArgb(72, RingColor), 2f);
+        g.DrawEllipse(ring, diskRect);
+
+        // Idle label when not playing
+        if (!isActive)
+        {
+            using var tb = new SolidBrush(IdleLabelColor);
+            using var sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Far };
+            g.DrawString("paused", Font, tb, new RectangleF(bounds.X, bounds.Y, bounds.Width, cy - hub / 2f - 6), sf);
+        }
+    }
+
     private string GetModeLabel() =>
         mode switch
         {
             VisualizerMode.Spectrum => "Spectrum",
             VisualizerMode.MirrorSpectrum => "Mirror Spectrum",
             VisualizerMode.Waveform => "Waveform",
+            VisualizerMode.SpinningDisk => "Spinning Disk",
             _ => "Visualizer"
         };
 

@@ -4,14 +4,14 @@ namespace AudioPlayer;
 
 public sealed class LyricsViewControl : UserControl
 {
-    private static readonly Color SurfaceColor = Color.FromArgb(14, 19, 32);
-    private static readonly Color EmphasisSurfaceColor = Color.FromArgb(18, 24, 40);
-    private static readonly Color CaptionColor = Color.FromArgb(80, 100, 148);
-    private static readonly Color BodyColor = Color.FromArgb(230, 238, 255);
-    private static readonly Color MutedLineColor = Color.FromArgb(110, 124, 158);
-    private static readonly Color PlayedSegmentColor = Color.FromArgb(214, 222, 242);
-    private static readonly Color ActiveSegmentColor = Color.FromArgb(110, 236, 182);
-    private static readonly Color UpcomingSegmentColor = Color.FromArgb(132, 146, 178);
+    private static readonly Color SurfaceColor = Color.FromArgb(28, 24, 30);
+    private static readonly Color EmphasisSurfaceColor = Color.FromArgb(36, 31, 37);
+    private static readonly Color CaptionColor = Color.FromArgb(156, 122, 91);
+    private static readonly Color BodyColor = Color.FromArgb(245, 237, 228);
+    private static readonly Color MutedLineColor = Color.FromArgb(153, 136, 123);
+    private static readonly Color PlayedSegmentColor = Color.FromArgb(226, 208, 186);
+    private static readonly Color ActiveSegmentColor = Color.FromArgb(246, 183, 93);
+    private static readonly Color UpcomingSegmentColor = Color.FromArgb(184, 164, 149);
 
     private readonly Font currentLineFont = new("Segoe UI Semibold", 16.5F, FontStyle.Bold, GraphicsUnit.Point);
     private readonly Font sideLineFont = new("Segoe UI", 11.5F, FontStyle.Regular, GraphicsUnit.Point);

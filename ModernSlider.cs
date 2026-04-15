@@ -80,6 +80,7 @@ public sealed class ModernSlider : Control
             if (!isHovering && !isDragging)
                 animTimer.Stop();
         }
+
         Invalidate();
     }
 
@@ -177,12 +178,13 @@ public sealed class ModernSlider : Control
         var pad = GetPad();
         var trackWidth = Width - pad * 2;
         if (trackWidth <= 0) return;
+
         var fraction = Math.Clamp((mouseX - pad) / (float)trackWidth, 0f, 1f);
         currentValue = (int)Math.Round(minimum + fraction * (maximum - minimum));
         Invalidate();
     }
 
-    private int GetPad() => IsLarge ? 10 : 5;
+    private int GetPad() => IsLarge ? 10 : 6;
 
     protected override void OnPaint(PaintEventArgs e)
     {
@@ -191,113 +193,157 @@ public sealed class ModernSlider : Control
         g.SmoothingMode = SmoothingMode.AntiAlias;
         g.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
+        var h = Enabled ? hoverAlpha : 0f;
+        var alphaScale = Enabled ? 1f : 0.5f;
         var pad = GetPad();
         var trackLeft = pad;
         var trackRight = Width - pad;
         var trackWidth = trackRight - trackLeft;
-        var centerY = Height / 2;
+        var centerY = Height / 2f;
 
-        // Track height and thumb size animate on hover
-        var baseTrackH = IsLarge ? 3f : 3f;
-        var activeTrackH = IsLarge ? 6f : 5f;
-        var trackH = baseTrackH + (activeTrackH - baseTrackH) * hoverAlpha;
+        if (trackWidth <= 0)
+            return;
 
-        var baseThumb = IsLarge ? 13 : 11;
-        var hoverThumb = IsLarge ? 20 : 15;
-        var thumbSize = (int)(baseThumb + (hoverThumb - baseThumb) * hoverAlpha);
+        var baseTrackH = IsLarge ? 4f : 3.5f;
+        var activeTrackH = IsLarge ? 8f : 6f;
+        var trackH = baseTrackH + ((activeTrackH - baseTrackH) * h);
+
+        var baseThumb = IsLarge ? 14 : 12;
+        var hoverThumb = IsLarge ? 22 : 17;
+        var thumbSize = (int)Math.Round(baseThumb + ((hoverThumb - baseThumb) * h));
 
         var fraction = maximum > minimum
             ? (currentValue - minimum) / (float)(maximum - minimum)
             : 0f;
-        var thumbX = trackLeft + (int)(trackWidth * fraction);
-        var trackY = centerY - trackH / 2f;
+        var thumbX = trackLeft + (trackWidth * fraction);
+        var trackY = centerY - (trackH / 2f);
+        var trackRect = new RectangleF(trackLeft, trackY, trackWidth, trackH);
 
-        // Track background
-        DrawRoundedRect(g,
-            new RectangleF(trackLeft, trackY, trackWidth, trackH),
-            trackH / 2f,
-            Color.FromArgb(70, 180, 210, 245));
+        using (var trackBrush = new SolidBrush(ApplyOpacity(Color.FromArgb(112, 86, 71, 62), alphaScale)))
+        {
+            DrawRoundedRect(g, trackRect, trackH / 2f, trackBrush);
+        }
 
-        // Filled portion
-        var filledW = trackWidth * fraction;
-        if (filledW >= trackH && trackH > 0)
+        using (var trackHighlight = new SolidBrush(ApplyOpacity(Color.FromArgb(18, 255, 255, 255), alphaScale)))
+        {
+            DrawRoundedRect(g, new RectangleF(trackRect.Left, trackRect.Top, trackRect.Width, Math.Max(1f, trackRect.Height * 0.45f)), trackH / 2f, trackHighlight);
+        }
+
+        var filledW = Math.Max(trackH, trackWidth * fraction);
+        if (fraction > 0f)
         {
             using var fillBrush = new LinearGradientBrush(
                 new PointF(trackLeft, 0),
                 new PointF(trackLeft + filledW + 1, 0),
-                Color.FromArgb(100, 175, 255),
-                Color.FromArgb(80, 255, 180));
-            DrawRoundedRect(g,
-                new RectangleF(trackLeft, trackY, filledW, trackH),
+                ApplyOpacity(Color.FromArgb(246, 186, 96), alphaScale),
+                ApplyOpacity(Color.FromArgb(221, 108, 79), alphaScale));
+            DrawRoundedRect(
+                g,
+                new RectangleF(trackLeft, trackY, Math.Min(trackWidth, filledW), trackH),
                 trackH / 2f,
                 fillBrush);
         }
 
-        // Focus ring
         if (Focused)
         {
-            using var focusPen = new Pen(Color.FromArgb(90, 120, 200, 255), 1f);
-            g.DrawRectangle(focusPen, 1, 1, Width - 3, Height - 3);
+            var focusBounds = new RectangleF(1.5f, 1.5f, Width - 3f, Height - 3f);
+            using var focusPath = CreateRoundedPath(focusBounds, Math.Min(10f, Height / 2f));
+            using var focusPen = new Pen(ApplyOpacity(Color.FromArgb(255, 216, 164, 98), 0.55f), 1.3f);
+            g.DrawPath(focusPen, focusPath);
         }
 
-        // Thumb (only when enabled)
-        if (Enabled)
+        var thumbRect = new RectangleF(
+            thumbX - (thumbSize / 2f),
+            centerY - (thumbSize / 2f),
+            thumbSize,
+            thumbSize);
+
+        using (var shadowBrush = new SolidBrush(ApplyOpacity(Color.FromArgb(38, 20, 14, 12), alphaScale)))
         {
-            // Glow
-            var glowAlpha = (int)(25 + hoverAlpha * 90);
-            var glowSize = thumbSize + 12;
-            using var glowBrush = new SolidBrush(Color.FromArgb(glowAlpha, 90, 190, 255));
-            g.FillEllipse(glowBrush,
-                thumbX - glowSize / 2,
-                centerY - glowSize / 2,
-                glowSize, glowSize);
-
-            // Outer thumb
-            using var thumbBrush = new SolidBrush(Color.FromArgb(240, 220, 242, 255));
-            g.FillEllipse(thumbBrush,
-                thumbX - thumbSize / 2,
-                centerY - thumbSize / 2,
-                thumbSize, thumbSize);
-
-            // Inner highlight
-            var highlightSize = Math.Max(2, thumbSize / 3);
-            using var hlBrush = new SolidBrush(Color.FromArgb(130, 255, 255, 255));
-            g.FillEllipse(hlBrush,
-                thumbX - highlightSize / 2,
-                centerY - thumbSize / 2 + 2,
-                highlightSize, highlightSize);
+            var shadowRect = thumbRect;
+            shadowRect.Offset(0, 1.3f);
+            g.FillEllipse(shadowBrush, shadowRect);
         }
-    }
 
-    private static void DrawRoundedRect(Graphics g, RectangleF rect, float radius, Color color)
-    {
-        if (rect.Width <= 0 || rect.Height <= 0) return;
-        using var brush = new SolidBrush(color);
-        DrawRoundedRect(g, rect, radius, brush);
+        using (var glowBrush = new SolidBrush(ApplyOpacity(Color.FromArgb(255, 244, 170, 92), (26f + (h * 80f)) / 255f * alphaScale)))
+        {
+            var glowRect = RectangleF.Inflate(thumbRect, 7f + (h * 2f), 7f + (h * 2f));
+            g.FillEllipse(glowBrush, glowRect);
+        }
+
+        using (var thumbBrush = new LinearGradientBrush(
+            new PointF(thumbRect.Left, thumbRect.Top),
+            new PointF(thumbRect.Left, thumbRect.Bottom),
+            ApplyOpacity(Color.FromArgb(250, 246, 239), alphaScale),
+            ApplyOpacity(Color.FromArgb(221, 202, 188), alphaScale)))
+        {
+            g.FillEllipse(thumbBrush, thumbRect);
+        }
+
+        using (var thumbBorderPen = new Pen(ApplyOpacity(Color.FromArgb(122, 98, 80), alphaScale), 1f))
+        {
+            g.DrawEllipse(thumbBorderPen, thumbRect);
+        }
+
+        var accentDot = new RectangleF(
+            thumbRect.Left + (thumbRect.Width * 0.32f),
+            thumbRect.Top + (thumbRect.Height * 0.32f),
+            thumbRect.Width * 0.36f,
+            thumbRect.Height * 0.36f);
+        using (var accentBrush = new SolidBrush(ApplyOpacity(Color.FromArgb(223, 120, 84), alphaScale)))
+        {
+            g.FillEllipse(accentBrush, accentDot);
+        }
+
+        var highlightSize = Math.Max(2f, thumbRect.Width * 0.22f);
+        using (var highlightBrush = new SolidBrush(ApplyOpacity(Color.White, 0.68f * alphaScale)))
+        {
+            g.FillEllipse(
+                highlightBrush,
+                thumbRect.Left + (thumbRect.Width * 0.28f),
+                thumbRect.Top + (thumbRect.Height * 0.18f),
+                highlightSize,
+                highlightSize);
+        }
     }
 
     private static void DrawRoundedRect(Graphics g, RectangleF rect, float radius, Brush brush)
     {
-        if (rect.Width <= 0 || rect.Height <= 0) return;
+        if (rect.Width <= 0 || rect.Height <= 0)
+            return;
+
+        using var path = CreateRoundedPath(rect, radius);
+        g.FillPath(brush, path);
+    }
+
+    private static GraphicsPath CreateRoundedPath(RectangleF rect, float radius)
+    {
         var r = Math.Min(radius, Math.Min(rect.Width, rect.Height) / 2f);
+        var path = new GraphicsPath();
         if (r < 0.5f)
         {
-            g.FillRectangle(brush, rect);
-            return;
+            path.AddRectangle(rect);
+            return path;
         }
-        var d = r * 2;
-        using var path = new GraphicsPath();
+
+        var d = r * 2f;
         path.AddArc(rect.Left, rect.Top, d, d, 180, 90);
         path.AddArc(rect.Right - d, rect.Top, d, d, 270, 90);
         path.AddArc(rect.Right - d, rect.Bottom - d, d, d, 0, 90);
         path.AddArc(rect.Left, rect.Bottom - d, d, d, 90, 90);
         path.CloseFigure();
-        g.FillPath(brush, path);
+        return path;
     }
 
     protected override void Dispose(bool disposing)
     {
         if (disposing) animTimer.Dispose();
         base.Dispose(disposing);
+    }
+
+    private static Color ApplyOpacity(Color color, float opacity)
+    {
+        var alpha = (int)Math.Round(Math.Clamp(opacity, 0f, 1f) * 255f);
+        return Color.FromArgb(alpha, color);
     }
 }

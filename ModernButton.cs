@@ -23,6 +23,9 @@ public sealed class ModernButton : Control
             ControlStyles.ResizeRedraw |
             ControlStyles.Selectable,
             true);
+        // Disable built-in click so base.OnMouseUp doesn't fire Click;
+        // our custom OnMouseUp handles it exclusively.
+        SetStyle(ControlStyles.StandardClick | ControlStyles.StandardDoubleClick, false);
 
         Cursor = Cursors.Hand;
         TabStop = true;
@@ -61,6 +64,7 @@ public sealed class ModernButton : Control
             hoverAlpha = target;
             if (!isHovering) animTimer.Stop();
         }
+
         Invalidate();
     }
 
@@ -125,8 +129,17 @@ public sealed class ModernButton : Control
         }
     }
 
-    protected override void OnGotFocus(EventArgs e) { base.OnGotFocus(e); Invalidate(); }
-    protected override void OnLostFocus(EventArgs e) { base.OnLostFocus(e); Invalidate(); }
+    protected override void OnGotFocus(EventArgs e)
+    {
+        base.OnGotFocus(e);
+        Invalidate();
+    }
+
+    protected override void OnLostFocus(EventArgs e)
+    {
+        base.OnLostFocus(e);
+        Invalidate();
+    }
 
     protected override void OnPaint(PaintEventArgs e)
     {
@@ -135,83 +148,164 @@ public sealed class ModernButton : Control
         g.SmoothingMode = SmoothingMode.AntiAlias;
         g.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
-        var bounds = new RectangleF(0.5f, 0.5f, Width - 1f, Height - 1f);
-        var radius = Pill ? Height / 2f : 8f;
-        var pressShift = isPressed ? 1 : 0;
-        var h = hoverAlpha;
+        var h = Enabled ? hoverAlpha : 0f;
+        var alphaScale = Enabled ? 1f : 0.55f;
+        var lift = !isPressed && Enabled ? h * 0.65f : 0f;
+        var pressShift = isPressed ? 1f : 0f;
+        var shadowOffset = isPressed ? 0.65f : 1.8f - (h * 0.45f);
+        var bounds = new RectangleF(0.75f, 0.75f - lift + pressShift, Width - 1.5f, Height - 3f);
+        var radius = Pill
+            ? Math.Max(4.5f, Math.Min(8f, bounds.Height * 0.20f))
+            : Math.Min(7f, Math.Max(4f, bounds.Height * 0.16f));
+
+        if (bounds.Width <= 0 || bounds.Height <= 0)
+            return;
 
         using var path = CreateRoundedPath(bounds, radius);
+        var shadowBounds = bounds;
+        shadowBounds.Offset(0, shadowOffset);
+        using var shadowPath = CreateRoundedPath(shadowBounds, radius);
+
+        var shadowBase = Blend(accentColor, Color.Black, 0.80f);
+        var shadowAlpha = IsGhost
+            ? 8f + (h * 10f) + (isPressed ? 4f : 0f)
+            : 18f + (h * 16f) + (isPressed ? 6f : 0f);
+        using (var shadowBrush = new SolidBrush(ApplyOpacity(shadowBase, shadowAlpha / 255f * alphaScale)))
+        {
+            g.FillPath(shadowBrush, shadowPath);
+        }
 
         if (IsGhost)
         {
-            // Ghost: transparent → subtle tint on hover
-            if (h > 0.01f)
+            var ghostBase = Blend(Color.FromArgb(31, 27, 33), accentColor, 0.18f + (h * 0.08f));
+            var fillAlpha = (10f + (h * 18f) + (isPressed ? 8f : 0f)) / 255f;
+            if (fillAlpha > 0.01f)
             {
-                var tintAlpha = (int)(h * 38);
-                using var tintBrush = new SolidBrush(Color.FromArgb(tintAlpha, accentColor));
+                using var tintBrush = new SolidBrush(ApplyOpacity(ghostBase, fillAlpha * alphaScale));
                 g.FillPath(tintBrush, path);
             }
 
-            // Border: more visible on hover
-            var borderAlpha = (int)(55 + h * 110);
-            using var borderPen = new Pen(Color.FromArgb(borderAlpha, 130, 155, 205), 1.5f);
-            g.DrawPath(borderPen, path);
+            var highlightBounds = new RectangleF(bounds.Left, bounds.Top, bounds.Width, bounds.Height * 0.38f);
+            using (var highlightPath = CreateRoundedPath(highlightBounds, radius))
+            using (var highlightBrush = new LinearGradientBrush(
+                new PointF(bounds.Left, highlightBounds.Top),
+                new PointF(bounds.Left, highlightBounds.Bottom),
+                ApplyOpacity(Color.White, (8f + (h * 10f)) / 255f * alphaScale),
+                Color.Transparent))
+            {
+                g.FillPath(highlightBrush, highlightPath);
+            }
+
+            var borderColor = Blend(accentColor, Color.White, 0.30f);
+            using (var borderPen = new Pen(ApplyOpacity(borderColor, (84f + (h * 54f)) / 255f * alphaScale), 1f))
+            {
+                g.DrawPath(borderPen, path);
+            }
+
+            var innerBounds = RectangleF.Inflate(bounds, -1.3f, -1.3f);
+            if (innerBounds.Width > 0 && innerBounds.Height > 0)
+            {
+                using var innerPath = CreateRoundedPath(innerBounds, Math.Max(2f, radius - 1.3f));
+                using var innerPen = new Pen(ApplyOpacity(Color.White, (6f + (h * 12f)) / 255f * alphaScale), 1f);
+                g.DrawPath(innerPen, innerPath);
+            }
         }
         else
         {
-            // Solid: base color that lightens on hover
-            var r  = (int)(accentColor.R + (Math.Min(255, accentColor.R + 50) - accentColor.R) * h);
-            var gr = (int)(accentColor.G + (Math.Min(255, accentColor.G + 42) - accentColor.G) * h);
-            var b  = (int)(accentColor.B + (Math.Min(255, accentColor.B + 50) - accentColor.B) * h);
-            var alpha = Enabled ? 255 : 120;
+            var topColor = Blend(accentColor, Color.White, 0.10f + (h * 0.05f));
+            var bottomColor = Blend(accentColor, Color.Black, 0.08f);
 
-            using var fillBrush = new SolidBrush(Color.FromArgb(alpha, r, gr, b));
+            if (isPressed)
+            {
+                topColor = Blend(topColor, Color.Black, 0.08f);
+                bottomColor = Blend(bottomColor, Color.Black, 0.12f);
+            }
+
+            using var fillBrush = new LinearGradientBrush(
+                new PointF(bounds.Left, bounds.Top),
+                new PointF(bounds.Left, bounds.Bottom),
+                ApplyOpacity(topColor, alphaScale),
+                ApplyOpacity(bottomColor, alphaScale));
             g.FillPath(fillBrush, path);
 
-            // Subtle top-edge gloss
-            var halfBounds = new RectangleF(bounds.Left, bounds.Top, bounds.Width, bounds.Height * 0.5f);
-            using var glossPath = CreateRoundedPath(halfBounds, radius);
-            using var glossBrush = new LinearGradientBrush(
-                new PointF(0, bounds.Top),
-                new PointF(0, bounds.Top + bounds.Height * 0.5f),
-                Color.FromArgb(35, 255, 255, 255),
-                Color.FromArgb(0, 255, 255, 255));
-            g.FillPath(glossBrush, glossPath);
+            var glossBounds = new RectangleF(bounds.Left, bounds.Top, bounds.Width, bounds.Height * 0.42f);
+            using (var glossPath = CreateRoundedPath(glossBounds, radius))
+            using (var glossBrush = new LinearGradientBrush(
+                new PointF(bounds.Left, glossBounds.Top),
+                new PointF(bounds.Left, glossBounds.Bottom),
+                ApplyOpacity(Color.White, (16f + (h * 8f)) / 255f * alphaScale),
+                Color.Transparent))
+            {
+                g.FillPath(glossBrush, glossPath);
+            }
 
-            // Subtle border
-            var borderAlpha = (int)(18 + h * 50);
-            using var borderPen = new Pen(Color.FromArgb(borderAlpha, 220, 250, 255), 1f);
-            g.DrawPath(borderPen, path);
+            using (var borderPen = new Pen(
+                ApplyOpacity(Blend(accentColor, Color.White, 0.28f), (34f + (h * 18f)) / 255f * alphaScale),
+                1f))
+            {
+                g.DrawPath(borderPen, path);
+            }
+
+            var innerBounds = RectangleF.Inflate(bounds, -1.2f, -1.2f);
+            if (innerBounds.Width > 0 && innerBounds.Height > 0)
+            {
+                using var innerPath = CreateRoundedPath(innerBounds, Math.Max(2f, radius - 1.2f));
+                using var innerPen = new Pen(
+                    ApplyOpacity(Blend(accentColor, Color.White, 0.34f), (8f + (h * 6f)) / 255f * alphaScale),
+                    1f);
+                g.DrawPath(innerPen, innerPath);
+            }
         }
 
-        // Focus ring
         if (Focused)
         {
-            var fb = new RectangleF(bounds.Left - 2, bounds.Top - 2, bounds.Width + 4, bounds.Height + 4);
-            using var focusPath = CreateRoundedPath(fb, radius + 2);
-            using var focusPen = new Pen(Color.FromArgb(150, 140, 195, 255), 1.5f);
+            var focusBounds = new RectangleF(bounds.Left - 2.5f, bounds.Top - 2.5f, bounds.Width + 5f, bounds.Height + 5f);
+            using var focusPath = CreateRoundedPath(focusBounds, radius + 2.5f);
+            using var focusPen = new Pen(ApplyOpacity(Blend(accentColor, Color.White, 0.36f), 0.65f), 1.15f);
             g.DrawPath(focusPen, focusPath);
         }
 
-        // Text
-        var textAlpha = Enabled ? (IsGhost ? (int)(140 + h * 90) : 255) : 80;
-        using var textBrush = new SolidBrush(Color.FromArgb(textAlpha, ForeColor));
+        var textColor = Enabled
+            ? ForeColor
+            : Blend(ForeColor, Color.FromArgb(98, 92, 88), 0.35f);
+        var textRect = new RectangleF(
+            bounds.Left + pressShift,
+            bounds.Top + pressShift - 0.5f,
+            bounds.Width,
+            bounds.Height);
+
         using var sf = new StringFormat
         {
             Alignment = StringAlignment.Center,
             LineAlignment = StringAlignment.Center,
             Trimming = StringTrimming.EllipsisCharacter
         };
-        g.DrawString(Text, Font, textBrush,
-            new RectangleF(pressShift, pressShift, Width - pressShift * 2, Height - pressShift * 2),
-            sf);
+
+        if (!IsGhost && Enabled)
+        {
+            using var textShadowBrush = new SolidBrush(Color.FromArgb(28, 20, 14, 10));
+            var shadowRect = textRect;
+            shadowRect.Offset(0, 1f);
+            g.DrawString(Text, Font, textShadowBrush, shadowRect, sf);
+        }
+
+        var textAlpha = Enabled
+            ? (IsGhost ? 212f + (h * 34f) : 245f)
+            : 135f;
+        using var textBrush = new SolidBrush(ApplyOpacity(textColor, textAlpha / 255f));
+        g.DrawString(Text, Font, textBrush, textRect, sf);
     }
 
     private static GraphicsPath CreateRoundedPath(RectangleF bounds, float radius)
     {
         var path = new GraphicsPath();
         var r = Math.Min(radius, Math.Min(bounds.Width, bounds.Height) / 2f);
-        if (r < 0.5f) { path.AddRectangle(bounds); return path; }
+        if (r < 0.5f)
+        {
+            path.AddRectangle(bounds);
+            return path;
+        }
+
         var d = r * 2;
         path.AddArc(bounds.Left, bounds.Top, d, d, 180, 90);
         path.AddArc(bounds.Right - d, bounds.Top, d, d, 270, 90);
@@ -225,5 +319,21 @@ public sealed class ModernButton : Control
     {
         if (disposing) animTimer.Dispose();
         base.Dispose(disposing);
+    }
+
+    private static Color ApplyOpacity(Color color, float opacity)
+    {
+        var alpha = (int)Math.Round(Math.Clamp(opacity, 0f, 1f) * 255f);
+        return Color.FromArgb(alpha, color);
+    }
+
+    private static Color Blend(Color from, Color to, float amount)
+    {
+        amount = Math.Clamp(amount, 0f, 1f);
+        return Color.FromArgb(
+            255,
+            (int)Math.Round(from.R + ((to.R - from.R) * amount)),
+            (int)Math.Round(from.G + ((to.G - from.G) * amount)),
+            (int)Math.Round(from.B + ((to.B - from.B) * amount)));
     }
 }

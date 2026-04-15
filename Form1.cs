@@ -6,6 +6,29 @@ namespace AudioPlayer;
 
 public partial class Form1 : Form
 {
+    private static readonly Color WindowBackColor = Color.FromArgb(22, 19, 24);
+    private static readonly Color SurfaceBackColor = Color.FromArgb(31, 27, 33);
+    private static readonly Color SurfaceAltBackColor = Color.FromArgb(38, 32, 39);
+    private static readonly Color TextPrimaryColor = Color.FromArgb(245, 238, 229);
+    private static readonly Color TextSecondaryColor = Color.FromArgb(189, 172, 157);
+    private static readonly Color TextSoftColor = Color.FromArgb(167, 149, 135);
+    private static readonly Color TextMutedColor = Color.FromArgb(136, 123, 114);
+    private static readonly Color AccentPrimaryColor = Color.FromArgb(244, 176, 87);
+    private static readonly Color AccentSecondaryColor = Color.FromArgb(224, 114, 83);
+    private static readonly Color AccentSoftColor = Color.FromArgb(153, 108, 82);
+    private static readonly Color DangerColor = Color.FromArgb(193, 94, 82);
+    private static readonly Color DangerTextColor = Color.FromArgb(242, 189, 178);
+    private static readonly Color StatusBorderColor = Color.FromArgb(84, 67, 58);
+    private static readonly TimeSpan VisualizerAutoCycleInterval = TimeSpan.FromSeconds(12);
+    private static readonly VisualizerModeOption[] StandardVisualizerModes =
+    [
+        new("Spectrum", VisualizerMode.Spectrum),
+        new("Mirror Spectrum", VisualizerMode.MirrorSpectrum),
+        new("Waveform", VisualizerMode.Waveform)
+    ];
+    private static readonly VisualizerModeOption SpinningDiskVisualizerMode =
+        new("Spinning Disk", VisualizerMode.SpinningDisk);
+
     private readonly AudioEngine engine = new();
     private readonly string? startupPath;
 
@@ -15,6 +38,8 @@ public partial class Form1 : Form
     private bool isMuted;
     private float preMuteVolume = 0.85f;
     private AudioTrackInfo? displayedArtworkTrack;
+    private Image? visualizerAlbumArt;
+    private long nextVisualizerCycleTick = Environment.TickCount64 + (long)VisualizerAutoCycleInterval.TotalMilliseconds;
 
     public Form1(string? startupPath = null)
     {
@@ -127,11 +152,6 @@ public partial class Form1 : Form
         UpdateUiState();
     }
 
-    private void btnOpen_Click(object sender, EventArgs e)
-    {
-        OpenAudioFile();
-    }
-
     private void btnStop_Click(object sender, EventArgs e)
     {
         engine.Stop();
@@ -237,6 +257,7 @@ public partial class Form1 : Form
     {
         UpdateSeekBar();
         UpdateVisualizer();
+        CycleVisualizerIfDue();
         UpdateUiState();
     }
 
@@ -260,6 +281,7 @@ public partial class Form1 : Form
     {
         timer1.Stop();
         DisposeDisplayedArtwork();
+        visualizerAlbumArt?.Dispose();
         engine.Dispose();
         base.OnFormClosed(e);
     }
@@ -268,22 +290,87 @@ public partial class Form1 : Form
 
     private void ApplyTheme()
     {
-        ForeColor = Color.FromArgb(220, 232, 255);
-        statusStrip1.Renderer = new DarkStatusStripRenderer();
+        BackColor = WindowBackColor;
+        ForeColor = TextPrimaryColor;
+        ApplyAppIcon();
+
+        statusStrip1.BackColor = WindowBackColor;
+        statusStrip1.ForeColor = TextSecondaryColor;
+        statusStrip1.Renderer = new ThemeStatusStripRenderer();
+
+        toolStripOutputLabel.ForeColor = TextSecondaryColor;
+        toolStripHintLabel.ForeColor = TextMutedColor;
+
+        picAlbumArt.BackColor = SurfaceBackColor;
+        lblNowPlaying.ForeColor = TextPrimaryColor;
+        lblTrackInfo.ForeColor = TextSecondaryColor;
+        lblCurrentTime.ForeColor = TextSoftColor;
+        lblDuration.ForeColor = TextMutedColor;
+        lblVolumeValue.ForeColor = TextSecondaryColor;
+
+        lblVisualizerModeCaption.ForeColor = TextMutedColor;
+        lblSampleRateCaption.ForeColor = TextMutedColor;
+        lblSensitivityCaption.ForeColor = TextMutedColor;
+        chkPeakHold.ForeColor = TextSecondaryColor;
+
+        ApplyComboBoxTheme(cmbVisualizerMode);
+        ApplyComboBoxTheme(cmbSampleRate);
+        toolTip1.SetToolTip(
+            cmbVisualizerMode,
+            $"Visualizer mode (auto-cycles every {(int)VisualizerAutoCycleInterval.TotalSeconds} seconds)");
+
+        transportLayout.Margin = new Padding(0, 14, 0, 0);
+        leftButtonsPanel.Padding = Padding.Empty;
+        rightControlsPanel.Padding = Padding.Empty;
+        settingsPanel.Padding = Padding.Empty;
+        settingsPanel.Margin = new Padding(0, 14, 0, 0);
+
+        btnPlayPause.AccentColor = AccentPrimaryColor;
+        btnPlayPause.ForeColor = Color.FromArgb(48, 24, 8);
+        btnPlayPause.Pill = false;
+        btnPlayPause.Font = new Font("Segoe UI Semibold", 9.25F, FontStyle.Bold, GraphicsUnit.Point);
+        btnPlayPause.Size = new Size(158, 40);
+
+        btnStop.AccentColor = DangerColor;
+        btnStop.ForeColor = TextSecondaryColor;
+        btnStop.Font = new Font("Segoe UI Semibold", 8.75F, FontStyle.Bold, GraphicsUnit.Point);
+        btnStop.Margin = new Padding(0, 0, 10, 0);
+        btnStop.Size = new Size(74, 38);
+
+        btnMute.AccentColor = AccentSoftColor;
+        btnMute.ForeColor = TextSecondaryColor;
+        btnMute.Font = new Font("Segoe UI Semibold", 8.75F, FontStyle.Bold, GraphicsUnit.Point);
+        btnMute.Margin = new Padding(0, 0, 12, 0);
+        btnMute.Size = new Size(74, 38);
+
+        btnDefaultApp.AccentColor = AccentSoftColor;
+        btnDefaultApp.ForeColor = TextSecondaryColor;
+        btnDefaultApp.Font = new Font("Segoe UI", 8.5F, FontStyle.Regular, GraphicsUnit.Point);
+        btnDefaultApp.Margin = new Padding(18, 0, 0, 0);
+        btnDefaultApp.Size = new Size(136, 32);
+
+        trackBarVolume.Margin = new Padding(0, 0, 12, 0);
+        trackBarVolume.Size = new Size(148, 38);
+        trackBarSensitivity.Size = new Size(120, 28);
+    }
+
+    private void ApplyAppIcon()
+    {
+        var extractedIcon = Icon.ExtractAssociatedIcon(Application.ExecutablePath);
+        if (extractedIcon is null)
+            return;
+
+        using (extractedIcon)
+        {
+            Icon = (Icon)extractedIcon.Clone();
+        }
     }
 
     private void PopulateSettings()
     {
         isApplyingSettings = true;
 
-        cmbVisualizerMode.Items.Clear();
-        cmbVisualizerMode.Items.AddRange(new object[]
-        {
-            new VisualizerModeOption("Spectrum",        VisualizerMode.Spectrum),
-            new VisualizerModeOption("Mirror Spectrum",  VisualizerMode.MirrorSpectrum),
-            new VisualizerModeOption("Waveform",        VisualizerMode.Waveform)
-        });
-        cmbVisualizerMode.SelectedIndex = 1;
+        RefreshVisualizerModeOptions(VisualizerMode.MirrorSpectrum);
 
         cmbSampleRate.Items.Clear();
         cmbSampleRate.Items.AddRange(new object[]
@@ -312,15 +399,101 @@ public partial class Form1 : Form
 
         visualizerControl.ShowPeaks = chkPeakHold.Checked;
         visualizerControl.Sensitivity = trackBarSensitivity.Value / 100f;
+
+        if (!isApplyingSettings)
+            ResetVisualizerCycleDeadline();
+    }
+
+    private void RefreshVisualizerModeOptions(VisualizerMode? preferredMode = null)
+    {
+        var selectedMode = preferredMode
+            ?? (cmbVisualizerMode.SelectedItem as VisualizerModeOption)?.Mode
+            ?? VisualizerMode.MirrorSpectrum;
+        var availableModes = GetAvailableVisualizerModeOptions();
+
+        if (!availableModes.Any(option => option.Mode == selectedMode))
+        {
+            selectedMode = availableModes.Any(option => option.Mode == VisualizerMode.MirrorSpectrum)
+                ? VisualizerMode.MirrorSpectrum
+                : availableModes[0].Mode;
+        }
+
+        var wasApplyingSettings = isApplyingSettings;
+        isApplyingSettings = true;
+        cmbVisualizerMode.BeginUpdate();
+        try
+        {
+            cmbVisualizerMode.Items.Clear();
+            cmbVisualizerMode.Items.AddRange(availableModes.Select(static option => (object)option).ToArray());
+            cmbVisualizerMode.SelectedIndex = Array.FindIndex(availableModes, option => option.Mode == selectedMode);
+        }
+        finally
+        {
+            cmbVisualizerMode.EndUpdate();
+            isApplyingSettings = wasApplyingSettings;
+        }
+
+        ApplyVisualizerSettings();
+        ResetVisualizerCycleDeadline();
+    }
+
+    private VisualizerModeOption[] GetAvailableVisualizerModeOptions() =>
+        visualizerAlbumArt is null
+            ? StandardVisualizerModes.ToArray()
+            : [.. StandardVisualizerModes, SpinningDiskVisualizerMode];
+
+    private void CycleVisualizerIfDue()
+    {
+        if (!engine.IsLoaded || cmbVisualizerMode.Items.Count <= 1)
+            return;
+
+        if (cmbVisualizerMode.DroppedDown)
+        {
+            ResetVisualizerCycleDeadline();
+            return;
+        }
+
+        if (Environment.TickCount64 < nextVisualizerCycleTick)
+            return;
+
+        AdvanceVisualizerMode();
+    }
+
+    private void AdvanceVisualizerMode()
+    {
+        if (cmbVisualizerMode.Items.Count <= 1)
+            return;
+
+        cmbVisualizerMode.SelectedIndex = cmbVisualizerMode.SelectedIndex switch
+        {
+            < 0 => 0,
+            var currentIndex => (currentIndex + 1) % cmbVisualizerMode.Items.Count
+        };
+    }
+
+    private void ResetVisualizerCycleDeadline() =>
+        nextVisualizerCycleTick = Environment.TickCount64 + (long)VisualizerAutoCycleInterval.TotalMilliseconds;
+
+    private static void ApplyComboBoxTheme(ModernComboBox comboBox)
+    {
+        comboBox.BackColor = SurfaceAltBackColor;
+        comboBox.ForeColor = TextPrimaryColor;
+        comboBox.FlatStyle = FlatStyle.Flat;
+        comboBox.Margin = new Padding(0, 0, 12, 0);
+        comboBox.Size = new Size(comboBox.Width, 36);
     }
 
     private void WireFileDrop(Control control)
     {
-        control.AllowDrop = true;
-        control.DragEnter -= Form1_DragEnter;
-        control.DragDrop  -= Form1_DragDrop;
-        control.DragEnter += Form1_DragEnter;
-        control.DragDrop  += Form1_DragDrop;
+        // Don't intercept mouse events on interactive controls — it breaks single-click.
+        if (control is not (ButtonBase or ModernButton or ModernSlider or ComboBox or CheckBox or ListBox))
+        {
+            control.AllowDrop = true;
+            control.DragEnter -= Form1_DragEnter;
+            control.DragDrop  -= Form1_DragDrop;
+            control.DragEnter += Form1_DragEnter;
+            control.DragDrop  += Form1_DragDrop;
+        }
 
         foreach (Control child in control.Controls)
             WireFileDrop(child);
@@ -402,32 +575,35 @@ public partial class Form1 : Form
         btnPlayPause.Text = track is null
             ? "Open Audio"
             : engine.IsPlaying ? "Pause" : "Play";
+        btnPlayPause.AccentColor = track is null ? AccentSecondaryColor : AccentPrimaryColor;
+        btnPlayPause.ForeColor = Color.FromArgb(48, 24, 8);
 
         // Stop button
         btnStop.Enabled     = track is not null;
         trackBarSeek.Enabled = track is not null;
 
         // Now-playing header
-        lblNowPlaying.Text = track?.DisplayName ?? "Drop audio here or use Open";
+        lblNowPlaying.Text = track?.DisplayName ?? "Drop a file here or press Play";
         lblTrackInfo.Text = BuildTrackInfoText(track);
+        SetLyricsVisible(track?.Lyrics is not null);
         lyricsView.UpdateState(track, engine.GetPosition());
 
         // Volume label & mute button
         if (isMuted || trackBarVolume.Value == 0)
         {
             lblVolumeValue.Text      = "Muted";
-            lblVolumeValue.ForeColor = Color.FromArgb(100, 108, 140);
+            lblVolumeValue.ForeColor = TextMutedColor;
             btnMute.Text             = "Unmute";
-            btnMute.AccentColor      = Color.FromArgb(160, 65, 72);
-            btnMute.ForeColor        = Color.FromArgb(210, 130, 135);
+            btnMute.AccentColor      = DangerColor;
+            btnMute.ForeColor        = DangerTextColor;
         }
         else
         {
             lblVolumeValue.Text      = $"{trackBarVolume.Value}%";
-            lblVolumeValue.ForeColor = Color.FromArgb(155, 175, 220);
+            lblVolumeValue.ForeColor = TextSecondaryColor;
             btnMute.Text             = "Mute";
-            btnMute.AccentColor      = Color.FromArgb(70, 92, 160);
-            btnMute.ForeColor        = Color.FromArgb(140, 158, 205);
+            btnMute.AccentColor      = AccentSoftColor;
+            btnMute.ForeColor        = TextSecondaryColor;
         }
 
         // Status bar
@@ -437,12 +613,14 @@ public partial class Form1 : Form
             : Math.Abs(engine.GetPosition()) < 0.01f ? "Loaded" : "Paused";
 
         toolStripStatusLabel.ForeColor = engine.IsPlaying
-            ? Color.FromArgb(52, 211, 153)   // matches play button accent
-            : Color.FromArgb(80, 100, 148);
+            ? AccentPrimaryColor
+            : TextMutedColor;
 
         toolStripOutputLabel.Text = engine.IsLoaded
             ? $"Output  {engine.EffectiveSampleRate / 1000d:0.#} kHz"
             : $"Output  {GetSelectedSampleRateLabel()}";
+        toolStripOutputLabel.ForeColor = engine.IsLoaded ? TextSecondaryColor : TextMutedColor;
+        toolStripHintLabel.ForeColor = TextMutedColor;
 
         Text = track is null ? "Audio Player" : BuildWindowTitle(track);
     }
@@ -501,6 +679,17 @@ public partial class Form1 : Form
             ? $"{track.DisplayName}  \u2014  Audio Player"
             : $"{track.Artist} - {track.DisplayName}  \u2014  Audio Player";
 
+    private void SetLyricsVisible(bool visible)
+    {
+        // Always sync column widths — the initial Designer state may not match runtime state.
+        lyricsView.Visible = visible;
+        contentLayout.ColumnStyles[0] = new ColumnStyle(SizeType.Percent, visible ? 58F : 100F);
+        contentLayout.ColumnStyles[1] = visible
+            ? new ColumnStyle(SizeType.Percent, 42F)
+            : new ColumnStyle(SizeType.Absolute, 0F);
+        contentLayout.PerformLayout();
+    }
+
     private void UpdateAlbumArt(AudioTrackInfo? track)
     {
         if (ReferenceEquals(displayedArtworkTrack, track) && picAlbumArt.Image is not null)
@@ -511,6 +700,12 @@ public partial class Form1 : Form
         displayedArtworkTrack = track;
         DisposeDisplayedArtwork();
         picAlbumArt.Image = CreateArtworkImage(track);
+
+        // Update visualizer album art (real art only, no fallback)
+        visualizerAlbumArt?.Dispose();
+        visualizerAlbumArt = track?.AlbumArtBytes is { Length: > 0 } bytes ? TryLoadArtwork(bytes) : null;
+        visualizerControl.AlbumArt = visualizerAlbumArt;
+        RefreshVisualizerModeOptions();
     }
 
     private void DisposeDisplayedArtwork()
@@ -523,6 +718,12 @@ public partial class Form1 : Form
         var image = picAlbumArt.Image;
         picAlbumArt.Image = null;
         image.Dispose();
+    }
+
+    private static Image? TryLoadArtwork(byte[] bytes)
+    {
+        try { return LoadArtwork(bytes); }
+        catch { return null; }
     }
 
     private static Image CreateArtworkImage(AudioTrackInfo? track)
@@ -643,27 +844,32 @@ public partial class Form1 : Form
     }
 
     // Dark renderer for the status strip — matches form background exactly
-    private sealed class DarkStatusStripRenderer : ToolStripProfessionalRenderer
+    private sealed class ThemeStatusStripRenderer : ToolStripProfessionalRenderer
     {
         // rgb(10,13,22) matches the form BackColor
-        private static readonly Color BgColor = Color.FromArgb(10, 13, 22);
-
-        public DarkStatusStripRenderer() : base(new DarkColorTable()) { }
+        public ThemeStatusStripRenderer() : base(new ThemeColorTable()) { }
 
         protected override void OnRenderToolStripBackground(ToolStripRenderEventArgs e)
         {
-            using var brush = new SolidBrush(BgColor);
+            using var brush = new SolidBrush(WindowBackColor);
             e.Graphics.FillRectangle(brush, e.AffectedBounds);
+
+            using var borderPen = new Pen(Color.FromArgb(48, StatusBorderColor), 1f);
+            e.Graphics.DrawLine(
+                borderPen,
+                e.AffectedBounds.Left,
+                e.AffectedBounds.Top,
+                e.AffectedBounds.Right,
+                e.AffectedBounds.Top);
         }
 
         protected override void OnRenderLabelBackground(ToolStripItemRenderEventArgs e) { }
         protected override void OnRenderSeparator(ToolStripSeparatorRenderEventArgs e) { }
     }
 
-    private sealed class DarkColorTable : ProfessionalColorTable
+    private sealed class ThemeColorTable : ProfessionalColorTable
     {
-        private static readonly Color Bg = Color.FromArgb(10, 13, 22);
-        public override Color StatusStripGradientBegin => Bg;
-        public override Color StatusStripGradientEnd   => Bg;
+        public override Color StatusStripGradientBegin => WindowBackColor;
+        public override Color StatusStripGradientEnd   => WindowBackColor;
     }
 }

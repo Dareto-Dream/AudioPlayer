@@ -16,7 +16,6 @@ namespace AudioPlayer
 
         // ── Track info ─────────────────────────────────────────────────────
         private System.Windows.Forms.PictureBox picAlbumArt;
-        private System.Windows.Forms.Label lblSectionCaption;
         private System.Windows.Forms.Label lblNowPlaying;
         private System.Windows.Forms.Label lblTrackInfo;
 
@@ -30,20 +29,18 @@ namespace AudioPlayer
         private System.Windows.Forms.Label lblDuration;
 
         // ── Transport ──────────────────────────────────────────────────────
-        private ModernButton btnOpen;
         private ModernButton btnPlayPause;
         private ModernButton btnStop;
         private ModernButton btnMute;
-        private System.Windows.Forms.Label lblVolumeCaption;
         private ModernSlider trackBarVolume;
         private System.Windows.Forms.Label lblVolumeValue;
 
         // ── Settings ───────────────────────────────────────────────────────
         private System.Windows.Forms.Label lblVisualizerModeCaption;
-        private System.Windows.Forms.ComboBox cmbVisualizerMode;
+        private ModernComboBox cmbVisualizerMode;
         private System.Windows.Forms.CheckBox chkPeakHold;
         private System.Windows.Forms.Label lblSampleRateCaption;
-        private System.Windows.Forms.ComboBox cmbSampleRate;
+        private ModernComboBox cmbSampleRate;
         private System.Windows.Forms.Label lblSensitivityCaption;
         private ModernSlider trackBarSensitivity;
         private ModernButton btnDefaultApp;
@@ -77,7 +74,6 @@ namespace AudioPlayer
             settingsPanel    = new System.Windows.Forms.FlowLayoutPanel();
 
             picAlbumArt      = new System.Windows.Forms.PictureBox();
-            lblSectionCaption = new System.Windows.Forms.Label();
             lblNowPlaying     = new System.Windows.Forms.Label();
             lblTrackInfo      = new System.Windows.Forms.Label();
 
@@ -88,20 +84,18 @@ namespace AudioPlayer
             trackBarSeek   = new ModernSlider();
             lblDuration    = new System.Windows.Forms.Label();
 
-            btnOpen     = new ModernButton();
             btnPlayPause = new ModernButton();
             btnStop      = new ModernButton();
             btnMute      = new ModernButton();
 
-            lblVolumeCaption = new System.Windows.Forms.Label();
             trackBarVolume   = new ModernSlider();
             lblVolumeValue   = new System.Windows.Forms.Label();
 
             lblVisualizerModeCaption = new System.Windows.Forms.Label();
-            cmbVisualizerMode        = new System.Windows.Forms.ComboBox();
+            cmbVisualizerMode        = new ModernComboBox();
             chkPeakHold              = new System.Windows.Forms.CheckBox();
             lblSampleRateCaption     = new System.Windows.Forms.Label();
-            cmbSampleRate            = new System.Windows.Forms.ComboBox();
+            cmbSampleRate            = new ModernComboBox();
             lblSensitivityCaption    = new System.Windows.Forms.Label();
             trackBarSensitivity      = new ModernSlider();
             btnDefaultApp            = new ModernButton();
@@ -147,8 +141,9 @@ namespace AudioPlayer
             rootLayout.TabIndex = 0;
 
             contentLayout.ColumnCount = 2;
-            contentLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 58F));
-            contentLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 42F));
+            // Col 1 starts at 0 — lyrics hidden by default; SetLyricsVisible adjusts at runtime.
+            contentLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            contentLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 0F));
             contentLayout.Controls.Add(visualizerControl, 0, 0);
             contentLayout.Controls.Add(lyricsView, 1, 0);
             contentLayout.Dock      = System.Windows.Forms.DockStyle.Fill;
@@ -164,62 +159,50 @@ namespace AudioPlayer
             trackInfoPanel.AutoSize     = true;
             trackInfoPanel.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             trackInfoPanel.ColumnCount  = 2;
-            trackInfoPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 138F));
+            trackInfoPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 116F));
             trackInfoPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            trackInfoPanel.Controls.Add(picAlbumArt,       0, 0);
-            trackInfoPanel.Controls.Add(lblSectionCaption, 1, 0);
-            trackInfoPanel.Controls.Add(lblNowPlaying,     1, 1);
-            trackInfoPanel.Controls.Add(lblTrackInfo,      1, 2);
+            trackInfoPanel.Controls.Add(picAlbumArt,   0, 0);
+            trackInfoPanel.Controls.Add(lblNowPlaying, 1, 0);
+            trackInfoPanel.Controls.Add(lblTrackInfo,  1, 1);
             trackInfoPanel.Dock   = System.Windows.Forms.DockStyle.Fill;
-            trackInfoPanel.Margin = new System.Windows.Forms.Padding(0, 0, 0, 16);
+            trackInfoPanel.Margin = new System.Windows.Forms.Padding(0, 0, 0, 18);
             trackInfoPanel.Name   = "trackInfoPanel";
-            trackInfoPanel.RowCount = 3;
+            trackInfoPanel.RowCount = 2;
             trackInfoPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
             trackInfoPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            trackInfoPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            trackInfoPanel.SetRowSpan(picAlbumArt, 3);
+            trackInfoPanel.SetRowSpan(picAlbumArt, 2);
             trackInfoPanel.TabIndex = 0;
 
             // ── picAlbumArt ───────────────────────────────────────────────
-            picAlbumArt.BackColor   = System.Drawing.Color.FromArgb(20, 25, 40);
-            picAlbumArt.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            picAlbumArt.Margin      = new System.Windows.Forms.Padding(0, 0, 18, 0);
+            picAlbumArt.BackColor   = System.Drawing.Color.FromArgb(16, 22, 36);
+            picAlbumArt.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            picAlbumArt.Margin      = new System.Windows.Forms.Padding(0, 0, 16, 0);
             picAlbumArt.Name        = "picAlbumArt";
-            picAlbumArt.Size        = new System.Drawing.Size(120, 120);
+            picAlbumArt.Size        = new System.Drawing.Size(96, 96);
             picAlbumArt.SizeMode    = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             picAlbumArt.TabStop     = false;
             toolTip1.SetToolTip(picAlbumArt, "Embedded album artwork");
 
-            // ── lblSectionCaption ─────────────────────────────────────────
-            // Small uppercase "NOW PLAYING" label
-            lblSectionCaption.AutoSize  = true;
-            lblSectionCaption.Font      = new System.Drawing.Font("Segoe UI", 7.5F, System.Drawing.FontStyle.Bold);
-            lblSectionCaption.ForeColor = System.Drawing.Color.FromArgb(80, 100, 148);
-            lblSectionCaption.Margin    = new System.Windows.Forms.Padding(0, 0, 0, 6);
-            lblSectionCaption.Name      = "lblSectionCaption";
-            lblSectionCaption.Text      = "NOW PLAYING";
-
             // ── lblNowPlaying ─────────────────────────────────────────────
-            // Main track title — large and prominent
             lblNowPlaying.AutoEllipsis = true;
             lblNowPlaying.AutoSize     = false;
             lblNowPlaying.Dock         = System.Windows.Forms.DockStyle.Fill;
-            lblNowPlaying.Font         = new System.Drawing.Font("Segoe UI Semibold", 21F, System.Drawing.FontStyle.Bold);
-            lblNowPlaying.ForeColor    = System.Drawing.Color.FromArgb(230, 238, 255);
-            lblNowPlaying.Margin       = new System.Windows.Forms.Padding(0, 0, 0, 5);
+            lblNowPlaying.Font         = new System.Drawing.Font("Segoe UI Semibold", 15F, System.Drawing.FontStyle.Bold);
+            lblNowPlaying.ForeColor    = System.Drawing.Color.FromArgb(228, 236, 255);
+            lblNowPlaying.Margin       = new System.Windows.Forms.Padding(0, 4, 0, 4);
             lblNowPlaying.Name         = "lblNowPlaying";
-            lblNowPlaying.Size         = new System.Drawing.Size(1014, 42);
-            lblNowPlaying.Text         = "Drop audio here or use Open";
+            lblNowPlaying.TextAlign    = System.Drawing.ContentAlignment.MiddleLeft;
+            lblNowPlaying.Text         = "Drop a file here or press Play";
 
             // ── lblTrackInfo ──────────────────────────────────────────────
             // Format / channels / sample-rate metadata line
             lblTrackInfo.AutoSize    = true;
-            lblTrackInfo.Font        = new System.Drawing.Font("Segoe UI", 9F);
-            lblTrackInfo.ForeColor   = System.Drawing.Color.FromArgb(105, 122, 168);
+            lblTrackInfo.Font        = new System.Drawing.Font("Segoe UI", 8.5F);
+            lblTrackInfo.ForeColor   = System.Drawing.Color.FromArgb(90, 108, 152);
             lblTrackInfo.Margin      = new System.Windows.Forms.Padding(0, 0, 0, 0);
             lblTrackInfo.MaximumSize = new System.Drawing.Size(980, 0);
             lblTrackInfo.Name        = "lblTrackInfo";
-            lblTrackInfo.Text        = "Supports MP3, WAV, FLAC, AAC, M4A, WMA, OGG Vorbis, AIFF, Opus, WebM, 3GP and more through installed Windows codecs.";
+            lblTrackInfo.Text        = "MP3  \u00b7  WAV  \u00b7  FLAC  \u00b7  AAC  \u00b7  OGG  \u00b7  and more";
 
             // ════════════════════════════════════════════════════════════════
             // visualizerControl
@@ -237,6 +220,7 @@ namespace AudioPlayer
             lyricsView.MinimumSize = new System.Drawing.Size(280, 0);
             lyricsView.Name        = "lyricsView";
             lyricsView.TabIndex    = 2;
+            lyricsView.Visible     = false;
 
             // ════════════════════════════════════════════════════════════════
             // seekLayout  — time / slider / time
@@ -251,7 +235,7 @@ namespace AudioPlayer
             seekLayout.Controls.Add(trackBarSeek,   1, 0);
             seekLayout.Controls.Add(lblDuration,    2, 0);
             seekLayout.Dock     = System.Windows.Forms.DockStyle.Fill;
-            seekLayout.Margin   = new System.Windows.Forms.Padding(0, 10, 0, 0);
+            seekLayout.Margin   = new System.Windows.Forms.Padding(0, 6, 0, 0);
             seekLayout.Name     = "seekLayout";
             seekLayout.RowCount = 1;
             seekLayout.RowStyles.Add(new System.Windows.Forms.RowStyle());
@@ -261,8 +245,8 @@ namespace AudioPlayer
             lblCurrentTime.Anchor    = System.Windows.Forms.AnchorStyles.Left;
             lblCurrentTime.AutoSize  = true;
             lblCurrentTime.Cursor    = System.Windows.Forms.Cursors.Hand;
-            lblCurrentTime.Font      = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular);
-            lblCurrentTime.ForeColor = System.Drawing.Color.FromArgb(160, 180, 220);
+            lblCurrentTime.Font      = new System.Drawing.Font("Segoe UI", 8.5F, System.Drawing.FontStyle.Regular);
+            lblCurrentTime.ForeColor = System.Drawing.Color.FromArgb(140, 160, 205);
             lblCurrentTime.Margin    = new System.Windows.Forms.Padding(0, 0, 6, 0);
             lblCurrentTime.Name      = "lblCurrentTime";
             lblCurrentTime.Text      = "0:00";
@@ -284,8 +268,8 @@ namespace AudioPlayer
             // ── lblDuration ───────────────────────────────────────────────
             lblDuration.Anchor    = System.Windows.Forms.AnchorStyles.Right;
             lblDuration.AutoSize  = true;
-            lblDuration.Font      = new System.Drawing.Font("Segoe UI", 9F);
-            lblDuration.ForeColor = System.Drawing.Color.FromArgb(80, 96, 138);
+            lblDuration.Font      = new System.Drawing.Font("Segoe UI", 8.5F);
+            lblDuration.ForeColor = System.Drawing.Color.FromArgb(72, 88, 128);
             lblDuration.Margin    = new System.Windows.Forms.Padding(6, 0, 0, 0);
             lblDuration.Name      = "lblDuration";
             lblDuration.Text      = "0:00";
@@ -311,49 +295,34 @@ namespace AudioPlayer
             leftButtonsPanel.AutoSize     = true;
             leftButtonsPanel.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             leftButtonsPanel.Anchor       = System.Windows.Forms.AnchorStyles.Left;
-            leftButtonsPanel.Controls.Add(btnOpen);
             leftButtonsPanel.Controls.Add(btnStop);
             leftButtonsPanel.Margin  = new System.Windows.Forms.Padding(0);
             leftButtonsPanel.Name    = "leftButtonsPanel";
             leftButtonsPanel.WrapContents = false;
 
-            // ── btnOpen ───────────────────────────────────────────────────
-            // Ghost-style secondary button
-            btnOpen.IsGhost     = true;
-            btnOpen.AccentColor = System.Drawing.Color.FromArgb(70, 92, 160);
-            btnOpen.Font        = new System.Drawing.Font("Segoe UI", 9.5F);
-            btnOpen.ForeColor   = System.Drawing.Color.FromArgb(165, 183, 225);
-            btnOpen.Margin      = new System.Windows.Forms.Padding(0, 0, 10, 0);
-            btnOpen.Name        = "btnOpen";
-            btnOpen.Size        = new System.Drawing.Size(100, 52);
-            btnOpen.TabIndex    = 0;
-            btnOpen.Text        = "Open";
-            btnOpen.Click      += btnOpen_Click;
-            toolTip1.SetToolTip(btnOpen, "Open audio file (Ctrl+O)");
-
             // ── btnStop ───────────────────────────────────────────────────
             btnStop.IsGhost     = true;
             btnStop.AccentColor = System.Drawing.Color.FromArgb(150, 55, 62);
             btnStop.Enabled     = false;
-            btnStop.Font        = new System.Drawing.Font("Segoe UI", 9.5F);
-            btnStop.ForeColor   = System.Drawing.Color.FromArgb(165, 183, 225);
-            btnStop.Margin      = new System.Windows.Forms.Padding(0);
+            btnStop.Font        = new System.Drawing.Font("Segoe UI Semibold", 8.75F, System.Drawing.FontStyle.Bold);
+            btnStop.ForeColor   = System.Drawing.Color.FromArgb(140, 158, 205);
+            btnStop.Margin      = new System.Windows.Forms.Padding(0, 0, 10, 0);
             btnStop.Name        = "btnStop";
-            btnStop.Size        = new System.Drawing.Size(90, 52);
+            btnStop.Size        = new System.Drawing.Size(74, 38);
             btnStop.TabIndex    = 1;
             btnStop.Text        = "Stop";
             btnStop.Click      += btnStop_Click;
             toolTip1.SetToolTip(btnStop, "Stop playback (Escape)");
 
             // ── btnPlayPause ──────────────────────────────────────────────
-            // Primary action: pill-shaped, accent-filled, centered in its column
-            btnPlayPause.Pill        = true;
+            // Primary action
+            btnPlayPause.Pill        = false;
             btnPlayPause.AccentColor = System.Drawing.Color.FromArgb(52, 211, 153);
-            btnPlayPause.Font        = new System.Drawing.Font("Segoe UI Semibold", 10.5F, System.Drawing.FontStyle.Bold);
+            btnPlayPause.Font        = new System.Drawing.Font("Segoe UI Semibold", 9.25F, System.Drawing.FontStyle.Bold);
             btnPlayPause.ForeColor   = System.Drawing.Color.FromArgb(6, 20, 16);
             btnPlayPause.Anchor      = System.Windows.Forms.AnchorStyles.None;
             btnPlayPause.Name        = "btnPlayPause";
-            btnPlayPause.Size        = new System.Drawing.Size(196, 52);
+            btnPlayPause.Size        = new System.Drawing.Size(158, 40);
             btnPlayPause.TabIndex    = 2;
             btnPlayPause.Text        = "Open Audio";
             btnPlayPause.Click      += btnPlayPause_Click;
@@ -363,7 +332,6 @@ namespace AudioPlayer
             rightControlsPanel.AutoSize     = true;
             rightControlsPanel.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             rightControlsPanel.Anchor       = System.Windows.Forms.AnchorStyles.Right;
-            rightControlsPanel.Controls.Add(lblVolumeCaption);
             rightControlsPanel.Controls.Add(btnMute);
             rightControlsPanel.Controls.Add(trackBarVolume);
             rightControlsPanel.Controls.Add(lblVolumeValue);
@@ -371,23 +339,14 @@ namespace AudioPlayer
             rightControlsPanel.Name    = "rightControlsPanel";
             rightControlsPanel.WrapContents = false;
 
-            // ── lblVolumeCaption ──────────────────────────────────────────
-            lblVolumeCaption.Anchor    = System.Windows.Forms.AnchorStyles.Left;
-            lblVolumeCaption.AutoSize  = true;
-            lblVolumeCaption.Font      = new System.Drawing.Font("Segoe UI", 8.5F);
-            lblVolumeCaption.ForeColor = System.Drawing.Color.FromArgb(80, 100, 148);
-            lblVolumeCaption.Margin    = new System.Windows.Forms.Padding(0, 0, 8, 0);
-            lblVolumeCaption.Name      = "lblVolumeCaption";
-            lblVolumeCaption.Text      = "Volume";
-
             // ── btnMute ───────────────────────────────────────────────────
             btnMute.IsGhost     = true;
             btnMute.AccentColor = System.Drawing.Color.FromArgb(70, 92, 160);
-            btnMute.Font        = new System.Drawing.Font("Segoe UI", 8.5F);
+            btnMute.Font        = new System.Drawing.Font("Segoe UI Semibold", 8.75F, System.Drawing.FontStyle.Bold);
             btnMute.ForeColor   = System.Drawing.Color.FromArgb(140, 158, 205);
-            btnMute.Margin      = new System.Windows.Forms.Padding(0, 0, 8, 0);
+            btnMute.Margin      = new System.Windows.Forms.Padding(0, 0, 12, 0);
             btnMute.Name        = "btnMute";
-            btnMute.Size        = new System.Drawing.Size(52, 52);
+            btnMute.Size        = new System.Drawing.Size(74, 38);
             btnMute.TabIndex    = 3;
             btnMute.Text        = "Mute";
             btnMute.Click      += btnMute_Click;
@@ -397,9 +356,9 @@ namespace AudioPlayer
             trackBarVolume.IsLarge  = false;
             trackBarVolume.Maximum  = 100;
             trackBarVolume.Minimum  = 0;
-            trackBarVolume.Margin   = new System.Windows.Forms.Padding(0, 0, 8, 0);
+            trackBarVolume.Margin   = new System.Windows.Forms.Padding(0, 0, 12, 0);
             trackBarVolume.Name     = "trackBarVolume";
-            trackBarVolume.Size     = new System.Drawing.Size(156, 52);
+            trackBarVolume.Size     = new System.Drawing.Size(148, 38);
             trackBarVolume.TabIndex = 4;
             trackBarVolume.Value    = 85;
             trackBarVolume.Scroll  += trackBarVolume_Scroll;
@@ -429,16 +388,16 @@ namespace AudioPlayer
             settingsPanel.Controls.Add(trackBarSensitivity);
             settingsPanel.Controls.Add(btnDefaultApp);
             settingsPanel.Dock   = System.Windows.Forms.DockStyle.Fill;
-            settingsPanel.Margin = new System.Windows.Forms.Padding(0, 10, 0, 0);
+            settingsPanel.Margin = new System.Windows.Forms.Padding(0, 14, 0, 0);
             settingsPanel.Name   = "settingsPanel";
             settingsPanel.WrapContents = false;
 
             // ── lblVisualizerModeCaption ──────────────────────────────────
             lblVisualizerModeCaption.Anchor    = System.Windows.Forms.AnchorStyles.Left;
             lblVisualizerModeCaption.AutoSize  = true;
-            lblVisualizerModeCaption.Font      = new System.Drawing.Font("Segoe UI", 8.5F);
-            lblVisualizerModeCaption.ForeColor = System.Drawing.Color.FromArgb(80, 100, 148);
-            lblVisualizerModeCaption.Margin    = new System.Windows.Forms.Padding(0, 0, 8, 0);
+            lblVisualizerModeCaption.Font      = new System.Drawing.Font("Segoe UI", 8F);
+            lblVisualizerModeCaption.ForeColor = System.Drawing.Color.FromArgb(72, 90, 136);
+            lblVisualizerModeCaption.Margin    = new System.Windows.Forms.Padding(0, 0, 6, 0);
             lblVisualizerModeCaption.Name      = "lblVisualizerModeCaption";
             lblVisualizerModeCaption.Text      = "Visualizer";
 
@@ -448,9 +407,9 @@ namespace AudioPlayer
             cmbVisualizerMode.BackColor         = System.Drawing.Color.FromArgb(22, 28, 46);
             cmbVisualizerMode.ForeColor         = System.Drawing.Color.FromArgb(185, 200, 235);
             cmbVisualizerMode.FormattingEnabled = true;
-            cmbVisualizerMode.Margin            = new System.Windows.Forms.Padding(0, 0, 20, 0);
+            cmbVisualizerMode.Margin            = new System.Windows.Forms.Padding(0, 0, 12, 0);
             cmbVisualizerMode.Name              = "cmbVisualizerMode";
-            cmbVisualizerMode.Size              = new System.Drawing.Size(152, 24);
+            cmbVisualizerMode.Size              = new System.Drawing.Size(148, 36);
             cmbVisualizerMode.TabIndex          = 5;
             cmbVisualizerMode.SelectedIndexChanged += cmbVisualizerMode_SelectedIndexChanged;
 
@@ -458,9 +417,9 @@ namespace AudioPlayer
             chkPeakHold.Anchor              = System.Windows.Forms.AnchorStyles.Left;
             chkPeakHold.AutoSize            = true;
             chkPeakHold.BackColor           = System.Drawing.Color.Transparent;
-            chkPeakHold.Font                = new System.Drawing.Font("Segoe UI", 8.5F);
-            chkPeakHold.ForeColor           = System.Drawing.Color.FromArgb(105, 122, 168);
-            chkPeakHold.Margin              = new System.Windows.Forms.Padding(0, 0, 22, 0);
+            chkPeakHold.Font                = new System.Drawing.Font("Segoe UI", 8F);
+            chkPeakHold.ForeColor           = System.Drawing.Color.FromArgb(90, 108, 155);
+            chkPeakHold.Margin              = new System.Windows.Forms.Padding(0, 0, 12, 0);
             chkPeakHold.Name                = "chkPeakHold";
             chkPeakHold.Text                = "Peak hold";
             chkPeakHold.UseVisualStyleBackColor = false;
@@ -470,9 +429,9 @@ namespace AudioPlayer
             // ── lblSampleRateCaption ──────────────────────────────────────
             lblSampleRateCaption.Anchor    = System.Windows.Forms.AnchorStyles.Left;
             lblSampleRateCaption.AutoSize  = true;
-            lblSampleRateCaption.Font      = new System.Drawing.Font("Segoe UI", 8.5F);
-            lblSampleRateCaption.ForeColor = System.Drawing.Color.FromArgb(80, 100, 148);
-            lblSampleRateCaption.Margin    = new System.Windows.Forms.Padding(0, 0, 8, 0);
+            lblSampleRateCaption.Font      = new System.Drawing.Font("Segoe UI", 8F);
+            lblSampleRateCaption.ForeColor = System.Drawing.Color.FromArgb(72, 90, 136);
+            lblSampleRateCaption.Margin    = new System.Windows.Forms.Padding(0, 0, 6, 0);
             lblSampleRateCaption.Name      = "lblSampleRateCaption";
             lblSampleRateCaption.Text      = "Output rate";
 
@@ -482,18 +441,18 @@ namespace AudioPlayer
             cmbSampleRate.BackColor         = System.Drawing.Color.FromArgb(22, 28, 46);
             cmbSampleRate.ForeColor         = System.Drawing.Color.FromArgb(185, 200, 235);
             cmbSampleRate.FormattingEnabled = true;
-            cmbSampleRate.Margin            = new System.Windows.Forms.Padding(0, 0, 22, 0);
+            cmbSampleRate.Margin            = new System.Windows.Forms.Padding(0, 0, 12, 0);
             cmbSampleRate.Name              = "cmbSampleRate";
-            cmbSampleRate.Size              = new System.Drawing.Size(135, 24);
+            cmbSampleRate.Size              = new System.Drawing.Size(128, 36);
             cmbSampleRate.TabIndex          = 7;
             cmbSampleRate.SelectedIndexChanged += cmbSampleRate_SelectedIndexChanged;
 
             // ── lblSensitivityCaption ─────────────────────────────────────
             lblSensitivityCaption.Anchor    = System.Windows.Forms.AnchorStyles.Left;
             lblSensitivityCaption.AutoSize  = true;
-            lblSensitivityCaption.Font      = new System.Drawing.Font("Segoe UI", 8.5F);
-            lblSensitivityCaption.ForeColor = System.Drawing.Color.FromArgb(80, 100, 148);
-            lblSensitivityCaption.Margin    = new System.Windows.Forms.Padding(0, 0, 8, 0);
+            lblSensitivityCaption.Font      = new System.Drawing.Font("Segoe UI", 8F);
+            lblSensitivityCaption.ForeColor = System.Drawing.Color.FromArgb(72, 90, 136);
+            lblSensitivityCaption.Margin    = new System.Windows.Forms.Padding(0, 0, 6, 0);
             lblSensitivityCaption.Name      = "lblSensitivityCaption";
             lblSensitivityCaption.Text      = "Sensitivity";
 
@@ -512,11 +471,11 @@ namespace AudioPlayer
             // Secondary action — pushed to the far right via Margin
             btnDefaultApp.IsGhost     = true;
             btnDefaultApp.AccentColor = System.Drawing.Color.FromArgb(62, 52, 118);
-            btnDefaultApp.Font        = new System.Drawing.Font("Segoe UI", 8F);
+            btnDefaultApp.Font        = new System.Drawing.Font("Segoe UI", 8.5F);
             btnDefaultApp.ForeColor   = System.Drawing.Color.FromArgb(90, 108, 155);
-            btnDefaultApp.Margin      = new System.Windows.Forms.Padding(28, 0, 0, 0);
+            btnDefaultApp.Margin      = new System.Windows.Forms.Padding(18, 0, 0, 0);
             btnDefaultApp.Name        = "btnDefaultApp";
-            btnDefaultApp.Size        = new System.Drawing.Size(118, 28);
+            btnDefaultApp.Size        = new System.Drawing.Size(136, 32);
             btnDefaultApp.TabIndex    = 9;
             btnDefaultApp.Text        = "Set as Default\u2026";
             btnDefaultApp.Click      += btnDefaultApp_Click;
@@ -555,13 +514,13 @@ namespace AudioPlayer
             // ════════════════════════════════════════════════════════════════
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode       = System.Windows.Forms.AutoScaleMode.Font;
-            BackColor           = System.Drawing.Color.FromArgb(10, 13, 22);
-            ClientSize          = new System.Drawing.Size(1054, 700);
+            BackColor           = System.Drawing.Color.FromArgb(11, 14, 24);
+            ClientSize          = new System.Drawing.Size(1020, 680);
             Controls.Add(rootLayout);
             Controls.Add(statusStrip1);
-            MinimumSize         = new System.Drawing.Size(860, 600);
+            MinimumSize         = new System.Drawing.Size(820, 580);
             Name                = "Form1";
-            Padding             = new System.Windows.Forms.Padding(20);
+            Padding             = new System.Windows.Forms.Padding(28, 22, 28, 4);
             StartPosition       = System.Windows.Forms.FormStartPosition.CenterScreen;
             Text                = "Audio Player";
             Load               += Form1_Load;
