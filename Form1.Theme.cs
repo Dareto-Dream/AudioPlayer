@@ -7,6 +7,7 @@ public partial class Form1
     private void ApplyTheme()
     {
         themePalette = ThemePalette.Create(appSettings.ThemeMode, appSettings.ThemeAccent);
+        WindowChromeStyler.ApplyTheme(this, themePalette);
 
         BackColor = WindowBackColor;
         ForeColor = TextPrimaryColor;

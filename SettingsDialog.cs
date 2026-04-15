@@ -6,6 +6,7 @@ internal sealed class SettingsDialog : Form
 {
     private readonly AppSettings workingSettings;
     private readonly List<Panel> sectionPanels = [];
+    private readonly List<Control> sectionSurfaceControls = [];
     private readonly List<Label> fieldTitleLabels = [];
     private readonly List<Label> fieldDescriptionLabels = [];
     private readonly List<Label> sectionTitleLabels = [];
@@ -48,6 +49,7 @@ internal sealed class SettingsDialog : Form
 
         AutoScaleMode = AutoScaleMode.Font;
         ClientSize = new Size(720, 760);
+        DoubleBuffered = true;
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;
         MinimizeBox = false;
@@ -56,6 +58,7 @@ internal sealed class SettingsDialog : Form
         ShowInTaskbar = false;
         StartPosition = FormStartPosition.CenterParent;
         Text = "Settings";
+        HandleCreated += (_, _) => ApplyThemePreview();
 
         rootLayout = new TableLayoutPanel
         {
@@ -315,6 +318,7 @@ internal sealed class SettingsDialog : Form
             GetSelectedValue(cmbThemeMode, workingSettings.ThemeMode),
             GetSelectedValue(cmbAccent, workingSettings.ThemeAccent));
 
+        WindowChromeStyler.ApplyTheme(this, palette);
         BackColor = palette.WindowBackColor;
         ForeColor = palette.TextPrimaryColor;
         rootLayout.BackColor = palette.WindowBackColor;
@@ -326,6 +330,9 @@ internal sealed class SettingsDialog : Form
 
         foreach (var section in sectionPanels)
             section.BackColor = palette.SurfaceBackColor;
+
+        foreach (var control in sectionSurfaceControls)
+            control.BackColor = palette.SurfaceBackColor;
 
         foreach (var label in sectionTitleLabels)
             label.ForeColor = palette.TextPrimaryColor;
@@ -478,6 +485,7 @@ internal sealed class SettingsDialog : Form
         section.Controls.Add(lblSectionTitle);
         section.Controls.Add(lblSectionSubtitle);
         sectionPanels.Add(section);
+        sectionSurfaceControls.Add(section);
         return section;
     }
 
@@ -536,6 +544,8 @@ internal sealed class SettingsDialog : Form
 
         row.Controls.Add(labelStack, 0, 0);
         row.Controls.Add(control, 1, 0);
+        sectionSurfaceControls.Add(row);
+        sectionSurfaceControls.Add(labelStack);
         return row;
     }
 
@@ -554,10 +564,11 @@ internal sealed class SettingsDialog : Form
 
         host.Controls.Add(cmbAccent);
         host.Controls.Add(accentPreview);
+        sectionSurfaceControls.Add(host);
         return host;
     }
 
-    private static Control CreateSliderHost(ModernSlider slider, Label valueLabel)
+    private Control CreateSliderHost(ModernSlider slider, Label valueLabel)
     {
         var host = new TableLayoutPanel
         {
@@ -572,6 +583,7 @@ internal sealed class SettingsDialog : Form
         host.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
         host.Controls.Add(slider, 0, 0);
         host.Controls.Add(valueLabel, 1, 0);
+        sectionSurfaceControls.Add(host);
         return host;
     }
 

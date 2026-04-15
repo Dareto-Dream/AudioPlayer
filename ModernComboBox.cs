@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Drawing.Drawing2D;
+using System.Runtime.InteropServices;
 
 namespace AudioPlayer;
 
@@ -19,6 +20,7 @@ public sealed class ModernComboBox : ComboBox
     private float cornerRadius = 6f;
 
     private bool isHovering;
+    private readonly DropDownListNativeWindow dropDownListWindow = new();
 
     public ModernComboBox()
     {
@@ -32,6 +34,14 @@ public sealed class ModernComboBox : ComboBox
         BackColor = surfaceColor;
         ForeColor = textColor;
         Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+            dropDownListWindow.Dispose();
+
+        base.Dispose(disposing);
     }
 
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -163,12 +173,15 @@ public sealed class ModernComboBox : ComboBox
     protected override void OnDropDown(EventArgs e)
     {
         base.OnDropDown(e);
+        UpdateDropDownHeight();
+        EnsureDropDownWindowTheme();
         Invalidate();
     }
 
     protected override void OnDropDownClosed(EventArgs e)
     {
         base.OnDropDownClosed(e);
+        dropDownListWindow.Detach();
         Invalidate();
     }
 
@@ -194,6 +207,12 @@ public sealed class ModernComboBox : ComboBox
     {
         base.OnEnabledChanged(e);
         Invalidate();
+    }
+
+    protected override void OnHandleCreated(EventArgs e)
+    {
+        base.OnHandleCreated(e);
+        ApplyNativeTheme();
     }
 
     protected override void OnDrawItem(DrawItemEventArgs e)
@@ -335,6 +354,41 @@ public sealed class ModernComboBox : ComboBox
             : borderColor;
     }
 
+    private void ApplyNativeTheme()
+    {
+        if (!IsHandleCreated)
+            return;
+
+        _ = SetWindowTheme(Handle, string.Empty, string.Empty);
+    }
+
+    private void UpdateDropDownHeight()
+    {
+        var visibleItemCount = Math.Max(1, Math.Min(MaxDropDownItems, Items.Count == 0 ? 1 : Items.Count));
+        DropDownHeight = Math.Max(38, (visibleItemCount * ItemHeight) + 4);
+    }
+
+    private void EnsureDropDownWindowTheme()
+    {
+        if (!IsHandleCreated)
+            return;
+
+        ApplyNativeTheme();
+
+        var info = new ComboBoxInfo
+        {
+            cbSize = Marshal.SizeOf<ComboBoxInfo>()
+        };
+
+        if (!GetComboBoxInfo(Handle, ref info) || info.hwndList == IntPtr.Zero)
+            return;
+
+        dropDownListWindow.Attach(info.hwndList);
+        dropDownListWindow.ApplyTheme(
+            DroppedDown ? surfaceOpenColor : surfaceColor,
+            GetBorderColor());
+    }
+
     private static GraphicsPath CreateRoundedPath(RectangleF bounds, float radius)
     {
         var path = new GraphicsPath();
@@ -352,5 +406,147 @@ public sealed class ModernComboBox : ComboBox
         path.AddArc(bounds.Left, bounds.Bottom - diameter, diameter, diameter, 90, 90);
         path.CloseFigure();
         return path;
+    }
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool GetComboBoxInfo(IntPtr hwndCombo, ref ComboBoxInfo pcbi);
+
+    [DllImport("uxtheme.dll", CharSet = CharSet.Unicode)]
+    private static extern int SetWindowTheme(IntPtr hwnd, string pszSubAppName, string? pszSubIdList);
+
+    private sealed class DropDownListNativeWindow : NativeWindow, IDisposable
+    {
+        private const int WM_ERASEBKGND = 0x0014;
+        private const int WM_PAINT = 0x000F;
+
+        private IntPtr backgroundBrush;
+        private Color borderColor = Color.Black;
+        private Color backgroundColor = Color.Black;
+
+        public void Attach(IntPtr handle)
+        {
+            if (Handle == handle)
+                return;
+
+            Detach();
+            AssignHandle(handle);
+            _ = SetWindowTheme(handle, string.Empty, string.Empty);
+        }
+
+        public void ApplyTheme(Color background, Color border)
+        {
+            backgroundColor = background;
+            borderColor = border;
+            RecreateBrush();
+
+            if (Handle != IntPtr.Zero)
+                _ = InvalidateRect(Handle, IntPtr.Zero, true);
+        }
+
+        public void Detach()
+        {
+            if (Handle != IntPtr.Zero)
+                ReleaseHandle();
+
+            ReleaseBrush();
+        }
+
+        public void Dispose()
+        {
+            Detach();
+            GC.SuppressFinalize(this);
+        }
+
+        protected override void WndProc(ref Message m)
+        {
+            switch (m.Msg)
+            {
+                case WM_ERASEBKGND:
+                    if (backgroundBrush != IntPtr.Zero && GetClientRect(Handle, out var rect))
+                    {
+                        _ = FillRect(m.WParam, ref rect, backgroundBrush);
+                        m.Result = (IntPtr)1;
+                        return;
+                    }
+                    break;
+
+                case WM_PAINT:
+                    base.WndProc(ref m);
+                    DrawBorder();
+                    return;
+            }
+
+            base.WndProc(ref m);
+        }
+
+        private void DrawBorder()
+        {
+            if (Handle == IntPtr.Zero || !GetClientRect(Handle, out var rect))
+                return;
+
+            using var graphics = Graphics.FromHwnd(Handle);
+            using var pen = new Pen(borderColor);
+            graphics.DrawRectangle(
+                pen,
+                Rectangle.FromLTRB(rect.Left, rect.Top, rect.Right - 1, rect.Bottom - 1));
+        }
+
+        private void RecreateBrush()
+        {
+            ReleaseBrush();
+            backgroundBrush = CreateSolidBrush(ToColorRef(backgroundColor));
+        }
+
+        private void ReleaseBrush()
+        {
+            if (backgroundBrush == IntPtr.Zero)
+                return;
+
+            _ = DeleteObject(backgroundBrush);
+            backgroundBrush = IntPtr.Zero;
+        }
+    }
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool GetClientRect(IntPtr hWnd, out Rect lpRect);
+
+    [DllImport("user32.dll")]
+    private static extern int FillRect(IntPtr hDC, [In] ref Rect lprc, IntPtr hbr);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool InvalidateRect(IntPtr hWnd, IntPtr lpRect, [MarshalAs(UnmanagedType.Bool)] bool bErase);
+
+    [DllImport("gdi32.dll")]
+    private static extern IntPtr CreateSolidBrush(int colorRef);
+
+    [DllImport("gdi32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool DeleteObject(IntPtr hObject);
+
+    private static int ToColorRef(Color color) =>
+        color.R | (color.G << 8) | (color.B << 16);
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct Rect
+    {
+        public int Left;
+        public int Top;
+        public int Right;
+        public int Bottom;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct ComboBoxInfo
+    {
+        public int cbSize;
+        public Rect rcItem;
+        public Rect rcButton;
+        public int stateButton;
+        public IntPtr hwndCombo;
+        public IntPtr hwndItem;
+        public IntPtr hwndList;
     }
 }

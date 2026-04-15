@@ -26,6 +26,7 @@ public partial class Form1 : Form
         themePalette = ThemePalette.Create(appSettings.ThemeMode, appSettings.ThemeAccent);
 
         InitializeComponent();
+        HandleCreated += (_, _) => ApplyTheme();
         nextVisualizerCycleTick = Environment.TickCount64 + (long)VisualizerAutoCycleInterval.TotalMilliseconds;
         ApplyTheme();
         PopulateSettings();
