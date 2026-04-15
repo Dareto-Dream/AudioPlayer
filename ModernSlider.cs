@@ -12,6 +12,10 @@ public sealed class ModernSlider : Control
     private int minimum;
     private int maximum = 100;
     private int currentValue;
+    private Color trackColor = Color.FromArgb(112, 86, 71, 62);
+    private Color accentStartColor = Color.FromArgb(246, 186, 96);
+    private Color accentEndColor = Color.FromArgb(221, 108, 79);
+    private Color focusColor = Color.FromArgb(255, 216, 164, 98);
     private bool isDragging;
     private bool isHovering;
     private float hoverAlpha;
@@ -64,6 +68,34 @@ public sealed class ModernSlider : Control
             currentValue = Math.Clamp(value, minimum, maximum);
             Invalidate();
         }
+    }
+
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public Color TrackColor
+    {
+        get => trackColor;
+        set { trackColor = value; Invalidate(); }
+    }
+
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public Color AccentStartColor
+    {
+        get => accentStartColor;
+        set { accentStartColor = value; Invalidate(); }
+    }
+
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public Color AccentEndColor
+    {
+        get => accentEndColor;
+        set { accentEndColor = value; Invalidate(); }
+    }
+
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public Color FocusColor
+    {
+        get => focusColor;
+        set { focusColor = value; Invalidate(); }
     }
 
     // Expose TickStyle as a no-op for Designer compatibility
@@ -219,7 +251,7 @@ public sealed class ModernSlider : Control
         var trackY = centerY - (trackH / 2f);
         var trackRect = new RectangleF(trackLeft, trackY, trackWidth, trackH);
 
-        using (var trackBrush = new SolidBrush(ApplyOpacity(Color.FromArgb(112, 86, 71, 62), alphaScale)))
+        using (var trackBrush = new SolidBrush(ApplyOpacity(trackColor, alphaScale)))
         {
             DrawRoundedRect(g, trackRect, trackH / 2f, trackBrush);
         }
@@ -235,8 +267,8 @@ public sealed class ModernSlider : Control
             using var fillBrush = new LinearGradientBrush(
                 new PointF(trackLeft, 0),
                 new PointF(trackLeft + filledW + 1, 0),
-                ApplyOpacity(Color.FromArgb(246, 186, 96), alphaScale),
-                ApplyOpacity(Color.FromArgb(221, 108, 79), alphaScale));
+                ApplyOpacity(accentStartColor, alphaScale),
+                ApplyOpacity(accentEndColor, alphaScale));
             DrawRoundedRect(
                 g,
                 new RectangleF(trackLeft, trackY, Math.Min(trackWidth, filledW), trackH),
@@ -248,7 +280,7 @@ public sealed class ModernSlider : Control
         {
             var focusBounds = new RectangleF(1.5f, 1.5f, Width - 3f, Height - 3f);
             using var focusPath = CreateRoundedPath(focusBounds, Math.Min(10f, Height / 2f));
-            using var focusPen = new Pen(ApplyOpacity(Color.FromArgb(255, 216, 164, 98), 0.55f), 1.3f);
+            using var focusPen = new Pen(ApplyOpacity(focusColor, 0.55f), 1.3f);
             g.DrawPath(focusPen, focusPath);
         }
 
@@ -265,7 +297,7 @@ public sealed class ModernSlider : Control
             g.FillEllipse(shadowBrush, shadowRect);
         }
 
-        using (var glowBrush = new SolidBrush(ApplyOpacity(Color.FromArgb(255, 244, 170, 92), (26f + (h * 80f)) / 255f * alphaScale)))
+        using (var glowBrush = new SolidBrush(ApplyOpacity(accentStartColor, (26f + (h * 80f)) / 255f * alphaScale)))
         {
             var glowRect = RectangleF.Inflate(thumbRect, 7f + (h * 2f), 7f + (h * 2f));
             g.FillEllipse(glowBrush, glowRect);
@@ -290,7 +322,7 @@ public sealed class ModernSlider : Control
             thumbRect.Top + (thumbRect.Height * 0.32f),
             thumbRect.Width * 0.36f,
             thumbRect.Height * 0.36f);
-        using (var accentBrush = new SolidBrush(ApplyOpacity(Color.FromArgb(223, 120, 84), alphaScale)))
+        using (var accentBrush = new SolidBrush(ApplyOpacity(accentEndColor, alphaScale)))
         {
             g.FillEllipse(accentBrush, accentDot);
         }

@@ -5,17 +5,18 @@ namespace AudioPlayer;
 
 public sealed class ModernComboBox : ComboBox
 {
-    private static readonly Color SurfaceColor = Color.FromArgb(35, 30, 36);
-    private static readonly Color SurfaceHoverColor = Color.FromArgb(41, 35, 42);
-    private static readonly Color SurfaceOpenColor = Color.FromArgb(44, 37, 44);
-    private static readonly Color SurfaceActiveColor = Color.FromArgb(52, 43, 49);
-    private static readonly Color BorderColor = Color.FromArgb(82, 68, 58);
-    private static readonly Color BorderHoverColor = Color.FromArgb(129, 98, 74);
-    private static readonly Color ButtonColor = Color.FromArgb(45, 38, 44);
-    private static readonly Color ButtonActiveColor = Color.FromArgb(60, 49, 55);
-    private static readonly Color TextColor = Color.FromArgb(242, 236, 228);
-    private static readonly Color MutedTextColor = Color.FromArgb(166, 149, 136);
-    private static readonly Color CaretColor = Color.FromArgb(228, 176, 106);
+    private Color surfaceColor = Color.FromArgb(35, 30, 36);
+    private Color surfaceHoverColor = Color.FromArgb(41, 35, 42);
+    private Color surfaceOpenColor = Color.FromArgb(44, 37, 44);
+    private Color surfaceActiveColor = Color.FromArgb(52, 43, 49);
+    private Color borderColor = Color.FromArgb(82, 68, 58);
+    private Color borderHoverColor = Color.FromArgb(129, 98, 74);
+    private Color buttonColor = Color.FromArgb(45, 38, 44);
+    private Color buttonActiveColor = Color.FromArgb(60, 49, 55);
+    private Color textColor = Color.FromArgb(242, 236, 228);
+    private Color mutedTextColor = Color.FromArgb(166, 149, 136);
+    private Color caretColor = Color.FromArgb(228, 176, 106);
+    private float cornerRadius = 6f;
 
     private bool isHovering;
 
@@ -28,8 +29,8 @@ public sealed class ModernComboBox : ComboBox
         MaxDropDownItems = 10;
         ItemHeight = 34;
 
-        BackColor = SurfaceColor;
-        ForeColor = TextColor;
+        BackColor = surfaceColor;
+        ForeColor = textColor;
         Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
     }
 
@@ -45,6 +46,104 @@ public sealed class ModernComboBox : ComboBox
     {
         get => base.DropDownStyle;
         set => base.DropDownStyle = value;
+    }
+
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public Color SurfaceColor
+    {
+        get => surfaceColor;
+        set
+        {
+            surfaceColor = value;
+            BackColor = value;
+            Invalidate();
+        }
+    }
+
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public Color SurfaceHoverColor
+    {
+        get => surfaceHoverColor;
+        set { surfaceHoverColor = value; Invalidate(); }
+    }
+
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public Color SurfaceOpenColor
+    {
+        get => surfaceOpenColor;
+        set { surfaceOpenColor = value; Invalidate(); }
+    }
+
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public Color SurfaceActiveColor
+    {
+        get => surfaceActiveColor;
+        set { surfaceActiveColor = value; Invalidate(); }
+    }
+
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public Color BorderColor
+    {
+        get => borderColor;
+        set { borderColor = value; Invalidate(); }
+    }
+
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public Color BorderHoverColor
+    {
+        get => borderHoverColor;
+        set { borderHoverColor = value; Invalidate(); }
+    }
+
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public Color ButtonColor
+    {
+        get => buttonColor;
+        set { buttonColor = value; Invalidate(); }
+    }
+
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public Color ButtonActiveColor
+    {
+        get => buttonActiveColor;
+        set { buttonActiveColor = value; Invalidate(); }
+    }
+
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public Color TextColor
+    {
+        get => textColor;
+        set
+        {
+            textColor = value;
+            ForeColor = value;
+            Invalidate();
+        }
+    }
+
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public Color MutedTextColor
+    {
+        get => mutedTextColor;
+        set { mutedTextColor = value; Invalidate(); }
+    }
+
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public Color CaretColor
+    {
+        get => caretColor;
+        set { caretColor = value; Invalidate(); }
+    }
+
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public float CornerRadius
+    {
+        get => cornerRadius;
+        set
+        {
+            cornerRadius = Math.Max(1f, value);
+            Invalidate();
+        }
     }
 
     protected override void OnMouseEnter(EventArgs e)
@@ -118,7 +217,7 @@ public sealed class ModernComboBox : ComboBox
             ? Color.FromArgb(42, 38, 42)
             : isEditPortion
                 ? GetSurfaceColor()
-                : isSelected ? SurfaceActiveColor : SurfaceColor;
+                : isSelected ? surfaceActiveColor : surfaceColor;
 
         using (var backgroundBrush = new SolidBrush(backgroundColor))
         {
@@ -140,7 +239,7 @@ public sealed class ModernComboBox : ComboBox
             itemText,
             Font,
             textRect,
-            Enabled ? TextColor : MutedTextColor,
+            Enabled ? textColor : mutedTextColor,
             TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix);
     }
 
@@ -163,7 +262,7 @@ public sealed class ModernComboBox : ComboBox
         if (outer.Width <= 0 || outer.Height <= 0)
             return;
 
-        var radius = 6f;
+        var radius = cornerRadius;
         var buttonRect = new RectangleF(Math.Max(outer.Left, outer.Right - 34f), outer.Top + 1f, 33f, outer.Height - 2f);
 
         using (var clipPath = CreateRoundedPath(outer, radius))
@@ -171,8 +270,8 @@ public sealed class ModernComboBox : ComboBox
             graphics.SetClip(clipPath);
             using var buttonBrush = new LinearGradientBrush(
                 buttonRect,
-                DroppedDown ? ButtonActiveColor : ButtonColor,
-                DroppedDown ? SurfaceOpenColor : SurfaceHoverColor,
+                DroppedDown ? buttonActiveColor : buttonColor,
+                DroppedDown ? surfaceOpenColor : surfaceHoverColor,
                 LinearGradientMode.Vertical);
             graphics.FillRectangle(buttonBrush, buttonRect);
             graphics.ResetClip();
@@ -183,7 +282,7 @@ public sealed class ModernComboBox : ComboBox
             graphics.DrawLine(separatorPen, buttonRect.Left, outer.Top + 6f, buttonRect.Left, outer.Bottom - 6f);
         }
 
-        using (var caretBrush = new SolidBrush(Enabled ? CaretColor : MutedTextColor))
+        using (var caretBrush = new SolidBrush(Enabled ? caretColor : mutedTextColor))
         using (var caretPath = new GraphicsPath())
         {
             var centerX = buttonRect.Left + (buttonRect.Width / 2f);
@@ -197,7 +296,7 @@ public sealed class ModernComboBox : ComboBox
             graphics.FillPath(caretBrush, caretPath);
         }
 
-        using (var borderPath = CreateRoundedPath(outer, radius))
+        using (var borderPath = CreateRoundedPath(outer, cornerRadius))
         using (var borderPen = new Pen(GetBorderColor(), 1f))
         {
             graphics.DrawPath(borderPen, borderPath);
@@ -206,7 +305,7 @@ public sealed class ModernComboBox : ComboBox
         var inner = RectangleF.Inflate(outer, -1.25f, -1.25f);
         if (inner.Width > 0 && inner.Height > 0)
         {
-            using var innerPath = CreateRoundedPath(inner, Math.Max(3f, radius - 1.25f));
+            using var innerPath = CreateRoundedPath(inner, Math.Max(3f, cornerRadius - 1.25f));
             using var innerPen = new Pen(Color.FromArgb(18, 255, 255, 255), 1f);
             graphics.DrawPath(innerPen, innerPath);
         }
@@ -218,12 +317,12 @@ public sealed class ModernComboBox : ComboBox
             return Color.FromArgb(42, 38, 42);
 
         if (DroppedDown)
-            return SurfaceOpenColor;
+            return surfaceOpenColor;
 
         if (Focused || isHovering)
-            return SurfaceHoverColor;
+            return surfaceHoverColor;
 
-        return SurfaceColor;
+        return surfaceColor;
     }
 
     private Color GetBorderColor()
@@ -232,8 +331,8 @@ public sealed class ModernComboBox : ComboBox
             return Color.FromArgb(70, 60, 54);
 
         return Focused || DroppedDown || isHovering
-            ? BorderHoverColor
-            : BorderColor;
+            ? borderHoverColor
+            : borderColor;
     }
 
     private static GraphicsPath CreateRoundedPath(RectangleF bounds, float radius)

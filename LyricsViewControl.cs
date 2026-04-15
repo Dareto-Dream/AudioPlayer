@@ -4,14 +4,14 @@ namespace AudioPlayer;
 
 public sealed class LyricsViewControl : UserControl
 {
-    private static readonly Color SurfaceColor = Color.FromArgb(28, 24, 30);
-    private static readonly Color EmphasisSurfaceColor = Color.FromArgb(36, 31, 37);
-    private static readonly Color CaptionColor = Color.FromArgb(156, 122, 91);
-    private static readonly Color BodyColor = Color.FromArgb(245, 237, 228);
-    private static readonly Color MutedLineColor = Color.FromArgb(153, 136, 123);
-    private static readonly Color PlayedSegmentColor = Color.FromArgb(226, 208, 186);
-    private static readonly Color ActiveSegmentColor = Color.FromArgb(246, 183, 93);
-    private static readonly Color UpcomingSegmentColor = Color.FromArgb(184, 164, 149);
+    private Color surfaceColor = Color.FromArgb(28, 24, 30);
+    private Color emphasisSurfaceColor = Color.FromArgb(36, 31, 37);
+    private Color captionColor = Color.FromArgb(156, 122, 91);
+    private Color bodyColor = Color.FromArgb(245, 237, 228);
+    private Color mutedLineColor = Color.FromArgb(153, 136, 123);
+    private Color playedSegmentColor = Color.FromArgb(226, 208, 186);
+    private Color activeSegmentColor = Color.FromArgb(246, 183, 93);
+    private Color upcomingSegmentColor = Color.FromArgb(184, 164, 149);
 
     private readonly Font currentLineFont = new("Segoe UI Semibold", 16.5F, FontStyle.Bold, GraphicsUnit.Point);
     private readonly Font sideLineFont = new("Segoe UI", 11.5F, FontStyle.Regular, GraphicsUnit.Point);
@@ -40,7 +40,7 @@ public sealed class LyricsViewControl : UserControl
     public LyricsViewControl()
     {
         DoubleBuffered = true;
-        BackColor = SurfaceColor;
+        BackColor = surfaceColor;
         Padding = new Padding(18, 16, 18, 16);
 
         rootLayout = new TableLayoutPanel
@@ -75,7 +75,7 @@ public sealed class LyricsViewControl : UserControl
             AutoSize = true,
             Dock = DockStyle.Fill,
             Font = new Font("Segoe UI", 7.5F, FontStyle.Bold, GraphicsUnit.Point),
-            ForeColor = CaptionColor,
+            ForeColor = captionColor,
             Margin = Padding.Empty,
             Text = "LYRICS"
         };
@@ -85,7 +85,7 @@ public sealed class LyricsViewControl : UserControl
             AutoSize = true,
             Anchor = AnchorStyles.Right,
             Font = new Font("Segoe UI", 7.5F, FontStyle.Bold, GraphicsUnit.Point),
-            ForeColor = CaptionColor,
+            ForeColor = captionColor,
             Margin = Padding.Empty,
             TextAlign = ContentAlignment.MiddleRight
         };
@@ -94,7 +94,7 @@ public sealed class LyricsViewControl : UserControl
         {
             Dock = DockStyle.Fill,
             Font = sideLineFont,
-            ForeColor = MutedLineColor,
+            ForeColor = mutedLineColor,
             Margin = new Padding(0, 10, 0, 0),
             Padding = Padding.Empty,
             TextAlign = ContentAlignment.BottomLeft,
@@ -103,7 +103,7 @@ public sealed class LyricsViewControl : UserControl
 
         currentHostPanel = new Panel
         {
-            BackColor = EmphasisSurfaceColor,
+            BackColor = emphasisSurfaceColor,
             Dock = DockStyle.Fill,
             Margin = new Padding(0, 10, 0, 10),
             Padding = new Padding(18, 16, 18, 16)
@@ -111,7 +111,7 @@ public sealed class LyricsViewControl : UserControl
 
         currentLinePanel = new FlowLayoutPanel
         {
-            BackColor = EmphasisSurfaceColor,
+            BackColor = emphasisSurfaceColor,
             Dock = DockStyle.Fill,
             FlowDirection = FlowDirection.LeftToRight,
             Margin = Padding.Empty,
@@ -136,7 +136,7 @@ public sealed class LyricsViewControl : UserControl
             AutoSize = true,
             Anchor = AnchorStyles.Bottom | AnchorStyles.Left,
             Font = emptyTitleFont,
-            ForeColor = BodyColor,
+            ForeColor = bodyColor,
             Margin = Padding.Empty,
             Text = "No track loaded",
             UseMnemonic = false
@@ -146,7 +146,7 @@ public sealed class LyricsViewControl : UserControl
         {
             Dock = DockStyle.Fill,
             Font = emptyBodyFont,
-            ForeColor = UpcomingSegmentColor,
+            ForeColor = upcomingSegmentColor,
             Margin = new Padding(0, 8, 0, 0),
             Text =
                 "Open a song with embedded LRC data or a matching sidecar .lrc file to see synced lyrics here.",
@@ -157,7 +157,7 @@ public sealed class LyricsViewControl : UserControl
         {
             Dock = DockStyle.Fill,
             Font = sideLineFont,
-            ForeColor = MutedLineColor,
+            ForeColor = mutedLineColor,
             Margin = Padding.Empty,
             Padding = Padding.Empty,
             TextAlign = ContentAlignment.TopLeft,
@@ -182,6 +182,39 @@ public sealed class LyricsViewControl : UserControl
 
         currentHostPanel.SizeChanged += (_, _) => RefreshSegmentLabelBounds();
         ShowEmptyState();
+    }
+
+    internal void ApplyTheme(ThemePalette palette)
+    {
+        surfaceColor = palette.SurfaceBackColor;
+        emphasisSurfaceColor = palette.SurfaceRaisedColor;
+        captionColor = palette.AccentPrimaryColor;
+        bodyColor = palette.TextPrimaryColor;
+        mutedLineColor = palette.TextMutedColor;
+        playedSegmentColor = ThemePalette.Blend(palette.TextSecondaryColor, palette.AccentPrimaryColor, palette.IsDark ? 0.35f : 0.20f);
+        activeSegmentColor = palette.AccentPrimaryColor;
+        upcomingSegmentColor = palette.TextSoftColor;
+
+        BackColor = surfaceColor;
+        rootLayout.BackColor = surfaceColor;
+        headerLayout.BackColor = surfaceColor;
+        currentHostPanel.BackColor = emphasisSurfaceColor;
+        currentLinePanel.BackColor = emphasisSurfaceColor;
+        emptyStateLayout.BackColor = emphasisSurfaceColor;
+        lblCaption.ForeColor = captionColor;
+        lblSource.ForeColor = captionColor;
+        lblPrevious.ForeColor = mutedLineColor;
+        lblNext.ForeColor = mutedLineColor;
+        lblEmptyTitle.ForeColor = bodyColor;
+        lblEmptyBody.ForeColor = upcomingSegmentColor;
+
+        foreach (var label in segmentLabels)
+        {
+            label.BackColor = emphasisSurfaceColor;
+        }
+
+        UpdateSegmentHighlight(displayedLine ?? new LyricsLine(0d, string.Empty), displayedLineIndex);
+        Invalidate();
     }
 
     public void UpdateState(AudioTrackInfo? track, double positionSeconds)
@@ -307,9 +340,9 @@ public sealed class LyricsViewControl : UserControl
             var label = new Label
             {
                 AutoSize = true,
-                BackColor = EmphasisSurfaceColor,
+                BackColor = emphasisSurfaceColor,
                 Font = currentLineFont,
-                ForeColor = UpcomingSegmentColor,
+                ForeColor = upcomingSegmentColor,
                 Margin = Padding.Empty,
                 MaximumSize = new Size(wrapWidth, 0),
                 Padding = Padding.Empty,
@@ -341,10 +374,10 @@ public sealed class LyricsViewControl : UserControl
         for (var i = 0; i < segmentLabels.Count; i++)
         {
             segmentLabels[i].ForeColor = lineIndex < 0
-                ? UpcomingSegmentColor
-                : i < activeSegmentIndex ? PlayedSegmentColor
-                : i == activeSegmentIndex ? ActiveSegmentColor
-                : UpcomingSegmentColor;
+                ? upcomingSegmentColor
+                : i < activeSegmentIndex ? playedSegmentColor
+                : i == activeSegmentIndex ? activeSegmentColor
+                : upcomingSegmentColor;
         }
     }
 

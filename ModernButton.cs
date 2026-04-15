@@ -9,9 +9,13 @@ namespace AudioPlayer;
 public sealed class ModernButton : Control
 {
     private Color accentColor = Color.FromArgb(50, 74, 128);
+    private Color surfaceColor = Color.FromArgb(31, 27, 33);
+    private Color disabledTextBlendColor = Color.FromArgb(98, 92, 88);
+    private Color textShadowColor = Color.FromArgb(28, 20, 14, 10);
     private bool isHovering;
     private bool isPressed;
     private float hoverAlpha;
+    private float cornerRadius;
     private readonly System.Windows.Forms.Timer animTimer;
 
     public ModernButton()
@@ -42,6 +46,34 @@ public sealed class ModernButton : Control
     {
         get => accentColor;
         set { accentColor = value; Invalidate(); }
+    }
+
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public Color SurfaceColor
+    {
+        get => surfaceColor;
+        set { surfaceColor = value; Invalidate(); }
+    }
+
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public Color DisabledTextBlendColor
+    {
+        get => disabledTextBlendColor;
+        set { disabledTextBlendColor = value; Invalidate(); }
+    }
+
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public Color TextShadowColor
+    {
+        get => textShadowColor;
+        set { textShadowColor = value; Invalidate(); }
+    }
+
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public float CornerRadius
+    {
+        get => cornerRadius;
+        set { cornerRadius = Math.Max(0f, value); Invalidate(); }
     }
 
     /// <summary>When true, renders as a fully-rounded pill shape.</summary>
@@ -154,9 +186,11 @@ public sealed class ModernButton : Control
         var pressShift = isPressed ? 1f : 0f;
         var shadowOffset = isPressed ? 0.65f : 1.8f - (h * 0.45f);
         var bounds = new RectangleF(0.75f, 0.75f - lift + pressShift, Width - 1.5f, Height - 3f);
-        var radius = Pill
-            ? Math.Max(4.5f, Math.Min(8f, bounds.Height * 0.20f))
-            : Math.Min(7f, Math.Max(4f, bounds.Height * 0.16f));
+        var radius = cornerRadius > 0f
+            ? cornerRadius
+            : Pill
+                ? Math.Max(4.5f, Math.Min(8f, bounds.Height * 0.20f))
+                : Math.Min(7f, Math.Max(4f, bounds.Height * 0.16f));
 
         if (bounds.Width <= 0 || bounds.Height <= 0)
             return;
@@ -177,7 +211,7 @@ public sealed class ModernButton : Control
 
         if (IsGhost)
         {
-            var ghostBase = Blend(Color.FromArgb(31, 27, 33), accentColor, 0.18f + (h * 0.08f));
+            var ghostBase = Blend(surfaceColor, accentColor, 0.18f + (h * 0.08f));
             var fillAlpha = (10f + (h * 18f) + (isPressed ? 8f : 0f)) / 255f;
             if (fillAlpha > 0.01f)
             {
@@ -267,7 +301,7 @@ public sealed class ModernButton : Control
 
         var textColor = Enabled
             ? ForeColor
-            : Blend(ForeColor, Color.FromArgb(98, 92, 88), 0.35f);
+            : Blend(ForeColor, disabledTextBlendColor, 0.35f);
         var textRect = new RectangleF(
             bounds.Left + pressShift,
             bounds.Top + pressShift - 0.5f,
@@ -283,7 +317,7 @@ public sealed class ModernButton : Control
 
         if (!IsGhost && Enabled)
         {
-            using var textShadowBrush = new SolidBrush(Color.FromArgb(28, 20, 14, 10));
+            using var textShadowBrush = new SolidBrush(textShadowColor);
             var shadowRect = textRect;
             shadowRect.Offset(0, 1f);
             g.DrawString(Text, Font, textShadowBrush, shadowRect, sf);

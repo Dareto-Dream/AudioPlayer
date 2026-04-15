@@ -13,6 +13,18 @@ namespace AudioPlayer
         private System.Windows.Forms.FlowLayoutPanel leftButtonsPanel;
         private System.Windows.Forms.FlowLayoutPanel rightControlsPanel;
         private System.Windows.Forms.FlowLayoutPanel settingsPanel;
+        private System.Windows.Forms.MenuStrip menuStrip1;
+        private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem fileOpenToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem fileSettingsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem fileSetDefaultToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem fileExitToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator fileToolStripSeparator1;
+        private System.Windows.Forms.ToolStripSeparator fileToolStripSeparator2;
+        private System.Windows.Forms.ToolStripMenuItem playbackToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem playbackPlayPauseToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem playbackStopToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem playbackMuteToolStripMenuItem;
 
         // ── Track info ─────────────────────────────────────────────────────
         private System.Windows.Forms.PictureBox picAlbumArt;
@@ -72,6 +84,18 @@ namespace AudioPlayer
             leftButtonsPanel = new System.Windows.Forms.FlowLayoutPanel();
             rightControlsPanel = new System.Windows.Forms.FlowLayoutPanel();
             settingsPanel    = new System.Windows.Forms.FlowLayoutPanel();
+            menuStrip1       = new System.Windows.Forms.MenuStrip();
+            fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            fileOpenToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            fileToolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            fileSettingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            fileSetDefaultToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            fileToolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
+            fileExitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            playbackToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            playbackPlayPauseToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            playbackStopToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            playbackMuteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 
             picAlbumArt      = new System.Windows.Forms.PictureBox();
             lblNowPlaying     = new System.Windows.Forms.Label();
@@ -115,6 +139,7 @@ namespace AudioPlayer
             leftButtonsPanel.SuspendLayout();
             rightControlsPanel.SuspendLayout();
             settingsPanel.SuspendLayout();
+            menuStrip1.SuspendLayout();
             statusStrip1.SuspendLayout();
             SuspendLayout();
 
@@ -129,9 +154,10 @@ namespace AudioPlayer
             rootLayout.Controls.Add(transportLayout, 0, 3);
             rootLayout.Controls.Add(settingsPanel,   0, 4);
             rootLayout.Dock     = System.Windows.Forms.DockStyle.Fill;
-            rootLayout.Location = new System.Drawing.Point(20, 20);
+            rootLayout.Location = new System.Drawing.Point(0, 34);
             rootLayout.Margin   = new System.Windows.Forms.Padding(0);
             rootLayout.Name     = "rootLayout";
+            rootLayout.Padding  = new System.Windows.Forms.Padding(28, 18, 28, 0);
             rootLayout.RowCount = 5;
             rootLayout.RowStyles.Add(new System.Windows.Forms.RowStyle());                                                    // 0 track info
             rootLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));         // 1 visualizer
@@ -392,6 +418,76 @@ namespace AudioPlayer
             settingsPanel.Name   = "settingsPanel";
             settingsPanel.WrapContents = false;
 
+            menuStrip1.AutoSize  = false;
+            menuStrip1.Dock      = System.Windows.Forms.DockStyle.Top;
+            menuStrip1.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
+            menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[]
+            {
+                fileToolStripMenuItem,
+                playbackToolStripMenuItem
+            });
+            menuStrip1.Location = new System.Drawing.Point(0, 0);
+            menuStrip1.Name     = "menuStrip1";
+            menuStrip1.Padding  = new System.Windows.Forms.Padding(18, 4, 2, 4);
+            menuStrip1.Size     = new System.Drawing.Size(1020, 34);
+            menuStrip1.TabIndex = 0;
+            menuStrip1.Text     = "menuStrip1";
+
+            fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[]
+            {
+                fileOpenToolStripMenuItem,
+                fileToolStripSeparator1,
+                fileSettingsToolStripMenuItem,
+                fileSetDefaultToolStripMenuItem,
+                fileToolStripSeparator2,
+                fileExitToolStripMenuItem
+            });
+            fileToolStripMenuItem.Name = "fileToolStripMenuItem";
+            fileToolStripMenuItem.Text = "&File";
+
+            fileOpenToolStripMenuItem.Name         = "fileOpenToolStripMenuItem";
+            fileOpenToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O;
+            fileOpenToolStripMenuItem.Text         = "&Open...";
+            fileOpenToolStripMenuItem.Click       += fileOpenToolStripMenuItem_Click;
+
+            fileToolStripSeparator1.Name = "fileToolStripSeparator1";
+
+            fileSettingsToolStripMenuItem.Name = "fileSettingsToolStripMenuItem";
+            fileSettingsToolStripMenuItem.ShortcutKeyDisplayString = "Ctrl+,";
+            fileSettingsToolStripMenuItem.Text = "&Settings...";
+            fileSettingsToolStripMenuItem.Click += fileSettingsToolStripMenuItem_Click;
+
+            fileSetDefaultToolStripMenuItem.Name = "fileSetDefaultToolStripMenuItem";
+            fileSetDefaultToolStripMenuItem.Text = "Set as &Default...";
+            fileSetDefaultToolStripMenuItem.Click += fileSetDefaultToolStripMenuItem_Click;
+
+            fileToolStripSeparator2.Name = "fileToolStripSeparator2";
+
+            fileExitToolStripMenuItem.Name = "fileExitToolStripMenuItem";
+            fileExitToolStripMenuItem.Text = "E&xit";
+            fileExitToolStripMenuItem.Click += fileExitToolStripMenuItem_Click;
+
+            playbackToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[]
+            {
+                playbackPlayPauseToolStripMenuItem,
+                playbackStopToolStripMenuItem,
+                playbackMuteToolStripMenuItem
+            });
+            playbackToolStripMenuItem.Name = "playbackToolStripMenuItem";
+            playbackToolStripMenuItem.Text = "&Playback";
+
+            playbackPlayPauseToolStripMenuItem.Name = "playbackPlayPauseToolStripMenuItem";
+            playbackPlayPauseToolStripMenuItem.Text = "Open Audio";
+            playbackPlayPauseToolStripMenuItem.Click += playbackPlayPauseToolStripMenuItem_Click;
+
+            playbackStopToolStripMenuItem.Name = "playbackStopToolStripMenuItem";
+            playbackStopToolStripMenuItem.Text = "&Stop";
+            playbackStopToolStripMenuItem.Click += playbackStopToolStripMenuItem_Click;
+
+            playbackMuteToolStripMenuItem.Name = "playbackMuteToolStripMenuItem";
+            playbackMuteToolStripMenuItem.Text = "&Mute";
+            playbackMuteToolStripMenuItem.Click += playbackMuteToolStripMenuItem_Click;
+
             // ── lblVisualizerModeCaption ──────────────────────────────────
             lblVisualizerModeCaption.Anchor    = System.Windows.Forms.AnchorStyles.Left;
             lblVisualizerModeCaption.AutoSize  = true;
@@ -507,7 +603,7 @@ namespace AudioPlayer
             toolStripHintLabel.Margin = new System.Windows.Forms.Padding(16, 3, 0, 2);
             toolStripHintLabel.Name   = "toolStripHintLabel";
             toolStripHintLabel.Text   =
-                "Space: Play/Pause  \u00b7  \u2190\u2192: Seek \u00b15s  \u00b7  Shift+\u2190\u2192: \u00b130s  \u00b7  \u2191\u2193: Volume  \u00b7  M: Mute  \u00b7  Ctrl+O: Open";
+                "Space: Play/Pause  \u00b7  \u2190\u2192: Seek \u00b15s  \u00b7  Shift+\u2190\u2192: \u00b130s  \u00b7  \u2191\u2193: Volume  \u00b7  M: Mute  \u00b7  Ctrl+O: Open  \u00b7  Ctrl+,: Settings";
 
             // ════════════════════════════════════════════════════════════════
             // Form1
@@ -518,9 +614,11 @@ namespace AudioPlayer
             ClientSize          = new System.Drawing.Size(1020, 680);
             Controls.Add(rootLayout);
             Controls.Add(statusStrip1);
+            Controls.Add(menuStrip1);
             MinimumSize         = new System.Drawing.Size(820, 580);
+            MainMenuStrip       = menuStrip1;
             Name                = "Form1";
-            Padding             = new System.Windows.Forms.Padding(28, 22, 28, 4);
+            Padding             = new System.Windows.Forms.Padding(0);
             StartPosition       = System.Windows.Forms.FormStartPosition.CenterScreen;
             Text                = "Audio Player";
             Load               += Form1_Load;
@@ -539,6 +637,8 @@ namespace AudioPlayer
             rightControlsPanel.PerformLayout();
             settingsPanel.ResumeLayout(false);
             settingsPanel.PerformLayout();
+            menuStrip1.ResumeLayout(false);
+            menuStrip1.PerformLayout();
             statusStrip1.ResumeLayout(false);
             statusStrip1.PerformLayout();
             ResumeLayout(false);

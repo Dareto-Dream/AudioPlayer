@@ -5,23 +5,23 @@ namespace AudioPlayer;
 
 public sealed class SpectrumVisualizerControl : Control
 {
-    private static readonly Color BackgroundTopColor = Color.FromArgb(24, 19, 24);
-    private static readonly Color BackgroundBottomColor = Color.FromArgb(10, 8, 12);
-    private static readonly Color AmbientGlowColor = Color.FromArgb(244, 152, 82);
-    private static readonly Color AmbientGridColor = Color.FromArgb(159, 121, 88);
-    private static readonly Color BarGlowColor = Color.FromArgb(238, 144, 94);
-    private static readonly Color BarStartColor = Color.FromArgb(248, 188, 98);
-    private static readonly Color BarEndColor = Color.FromArgb(226, 111, 80);
-    private static readonly Color PeakColor = Color.FromArgb(255, 235, 189);
-    private static readonly Color HudLabelColor = Color.FromArgb(244, 236, 227);
-    private static readonly Color HudInfoColor = Color.FromArgb(191, 174, 159);
-    private static readonly Color PlaceholderColor = Color.FromArgb(188, 175, 161);
-    private static readonly Color DiskFillColor = Color.FromArgb(34, 29, 35);
-    private static readonly Color DiskGrooveColor = Color.FromArgb(168, 143, 120);
-    private static readonly Color HubColor = Color.FromArgb(20, 17, 22);
-    private static readonly Color HubDotColor = Color.FromArgb(176, 132, 93);
-    private static readonly Color RingColor = Color.FromArgb(173, 124, 90);
-    private static readonly Color IdleLabelColor = Color.FromArgb(170, 156, 145);
+    private Color backgroundTopColor = Color.FromArgb(24, 19, 24);
+    private Color backgroundBottomColor = Color.FromArgb(10, 8, 12);
+    private Color ambientGlowColor = Color.FromArgb(244, 152, 82);
+    private Color ambientGridColor = Color.FromArgb(159, 121, 88);
+    private Color barGlowColor = Color.FromArgb(238, 144, 94);
+    private Color barStartColor = Color.FromArgb(248, 188, 98);
+    private Color barEndColor = Color.FromArgb(226, 111, 80);
+    private Color peakColor = Color.FromArgb(255, 235, 189);
+    private Color hudLabelColor = Color.FromArgb(244, 236, 227);
+    private Color hudInfoColor = Color.FromArgb(191, 174, 159);
+    private Color placeholderColor = Color.FromArgb(188, 175, 161);
+    private Color diskFillColor = Color.FromArgb(34, 29, 35);
+    private Color diskGrooveColor = Color.FromArgb(168, 143, 120);
+    private Color hubColor = Color.FromArgb(20, 17, 22);
+    private Color hubDotColor = Color.FromArgb(176, 132, 93);
+    private Color ringColor = Color.FromArgb(173, 124, 90);
+    private Color idleLabelColor = Color.FromArgb(170, 156, 145);
 
     private readonly float[] spectrumLevels = new float[64];
     private readonly float[] peakHoldLevels = new float[64];
@@ -47,8 +47,33 @@ public sealed class SpectrumVisualizerControl : Control
             ControlStyles.ResizeRedraw,
             true);
 
-        BackColor = BackgroundTopColor;
-        ForeColor = BarStartColor;
+        BackColor = backgroundTopColor;
+        ForeColor = barStartColor;
+    }
+
+    internal void ApplyTheme(ThemePalette palette)
+    {
+        backgroundTopColor = ThemePalette.Blend(palette.SurfaceBackColor, palette.WindowBackColor, palette.IsDark ? 0.30f : 0.08f);
+        backgroundBottomColor = ThemePalette.Blend(palette.WindowBackColor, Color.Black, palette.IsDark ? 0.52f : 0.06f);
+        ambientGlowColor = palette.AccentPrimaryColor;
+        ambientGridColor = ThemePalette.Blend(palette.BorderStrongColor, palette.AccentPrimaryColor, 0.22f);
+        barGlowColor = ThemePalette.Blend(palette.AccentPrimaryColor, palette.AccentSecondaryColor, 0.55f);
+        barStartColor = ThemePalette.Blend(palette.AccentPrimaryColor, Color.White, palette.IsDark ? 0.10f : 0.04f);
+        barEndColor = palette.AccentSecondaryColor;
+        peakColor = ThemePalette.Blend(palette.TextPrimaryColor, palette.AccentPrimaryColor, palette.IsDark ? 0.16f : 0.08f);
+        hudLabelColor = palette.TextPrimaryColor;
+        hudInfoColor = palette.TextSecondaryColor;
+        placeholderColor = palette.TextSoftColor;
+        diskFillColor = ThemePalette.Blend(palette.SurfaceRaisedColor, palette.WindowBackColor, palette.IsDark ? 0.36f : 0.08f);
+        diskGrooveColor = ThemePalette.Blend(palette.TextSoftColor, palette.AccentPrimaryColor, 0.20f);
+        hubColor = ThemePalette.Blend(palette.WindowBackColor, Color.Black, palette.IsDark ? 0.18f : 0.02f);
+        hubDotColor = palette.AccentSecondaryColor;
+        ringColor = ThemePalette.Blend(palette.BorderStrongColor, palette.AccentPrimaryColor, 0.30f);
+        idleLabelColor = palette.TextMutedColor;
+
+        BackColor = backgroundTopColor;
+        ForeColor = barStartColor;
+        Invalidate();
     }
 
     [DefaultValue(VisualizerMode.MirrorSpectrum)]
@@ -179,8 +204,8 @@ public sealed class SpectrumVisualizerControl : Control
 
         using var backgroundBrush = new LinearGradientBrush(
             bounds,
-            BackgroundTopColor,
-            BackgroundBottomColor,
+            backgroundTopColor,
+            backgroundBottomColor,
             LinearGradientMode.Vertical);
         graphics.FillRectangle(backgroundBrush, bounds);
 
@@ -194,14 +219,14 @@ public sealed class SpectrumVisualizerControl : Control
                 new Point(bounds.Left, bounds.Height / 3)
             })
         {
-            CenterColor = Color.FromArgb((int)(92 * glowStrength), AmbientGlowColor),
+            CenterColor = Color.FromArgb((int)(92 * glowStrength), ambientGlowColor),
             SurroundColors = new[]
             {
-                Color.FromArgb(0, AmbientGlowColor),
-                Color.FromArgb(0, AmbientGlowColor),
-                Color.FromArgb(0, AmbientGlowColor),
-                Color.FromArgb(0, AmbientGlowColor),
-                Color.FromArgb(0, AmbientGlowColor)
+                Color.FromArgb(0, ambientGlowColor),
+                Color.FromArgb(0, ambientGlowColor),
+                Color.FromArgb(0, ambientGlowColor),
+                Color.FromArgb(0, ambientGlowColor),
+                Color.FromArgb(0, ambientGlowColor)
             }
         };
         graphics.FillRectangle(accentBrush, bounds);
@@ -209,8 +234,8 @@ public sealed class SpectrumVisualizerControl : Control
 
     private void DrawGrid(Graphics graphics, Rectangle bounds)
     {
-        using var horizontalPen = new Pen(Color.FromArgb(22, AmbientGridColor));
-        using var verticalPen = new Pen(Color.FromArgb(14, AmbientGridColor));
+        using var horizontalPen = new Pen(Color.FromArgb(22, ambientGridColor));
+        using var verticalPen = new Pen(Color.FromArgb(14, ambientGridColor));
 
         for (var index = 1; index < 5; index++)
         {
@@ -235,13 +260,13 @@ public sealed class SpectrumVisualizerControl : Control
         var cornerRadius = Math.Max(4, barWidth / 2);
         var centerY = contentBounds.Top + (contentBounds.Height / 2);
 
-        using var glowBrush = new SolidBrush(Color.FromArgb(22, BarGlowColor));
+        using var glowBrush = new SolidBrush(Color.FromArgb(22, barGlowColor));
         using var fillBrush = new LinearGradientBrush(
             contentBounds,
-            BarStartColor,
-            BarEndColor,
+            barStartColor,
+            barEndColor,
             LinearGradientMode.Vertical);
-        using var peakPen = new Pen(Color.FromArgb(210, PeakColor), 2);
+        using var peakPen = new Pen(Color.FromArgb(210, peakColor), 2);
 
         for (var index = 0; index < displayBars; index++)
         {
@@ -295,19 +320,19 @@ public sealed class SpectrumVisualizerControl : Control
         var contentBounds = Rectangle.Inflate(bounds, -18, -24);
         var centerY = contentBounds.Top + (contentBounds.Height / 2f);
 
-        using var glowPen = new Pen(Color.FromArgb(40, AmbientGlowColor), 8)
+        using var glowPen = new Pen(Color.FromArgb(40, ambientGlowColor), 8)
         {
             StartCap = LineCap.Round,
             EndCap = LineCap.Round,
             LineJoin = LineJoin.Round
         };
-        using var wavePen = new Pen(Color.FromArgb(240, BarStartColor), 3)
+        using var wavePen = new Pen(Color.FromArgb(240, barStartColor), 3)
         {
             StartCap = LineCap.Round,
             EndCap = LineCap.Round,
             LineJoin = LineJoin.Round
         };
-        using var centerPen = new Pen(Color.FromArgb(72, HudLabelColor), 1.5f);
+        using var centerPen = new Pen(Color.FromArgb(72, hudLabelColor), 1.5f);
 
         graphics.DrawLine(centerPen, contentBounds.Left, centerY, contentBounds.Right, centerY);
 
@@ -323,13 +348,13 @@ public sealed class SpectrumVisualizerControl : Control
         var meterHeight = 8;
         var meterRect = new Rectangle(hudBounds.Right - meterWidth, hudBounds.Top + 12, meterWidth, meterHeight);
 
-        using var labelBrush = new SolidBrush(HudLabelColor);
-        using var infoBrush = new SolidBrush(HudInfoColor);
+        using var labelBrush = new SolidBrush(hudLabelColor);
+        using var infoBrush = new SolidBrush(hudInfoColor);
         using var meterBackBrush = new SolidBrush(Color.FromArgb(42, 255, 245, 230));
         using var meterFillBrush = new LinearGradientBrush(
             meterRect,
-            BarStartColor,
-            BarEndColor,
+            barStartColor,
+            barEndColor,
             LinearGradientMode.Horizontal);
 
         graphics.DrawString(GetModeLabel(), Font, labelBrush, hudBounds.Left, hudBounds.Top);
@@ -352,7 +377,7 @@ public sealed class SpectrumVisualizerControl : Control
 
     private void DrawPlaceholder(Graphics graphics, Rectangle bounds)
     {
-        using var textBrush = new SolidBrush(PlaceholderColor);
+        using var textBrush = new SolidBrush(placeholderColor);
         using var format = new StringFormat
         {
             Alignment = StringAlignment.Center,
@@ -411,13 +436,13 @@ public sealed class SpectrumVisualizerControl : Control
         }
         else
         {
-            using var fill = new SolidBrush(DiskFillColor);
+            using var fill = new SolidBrush(diskFillColor);
             g.FillEllipse(fill, diskRect);
         }
 
         // Vinyl groove lines
         var grooveAlpha = albumArt != null ? 20 : 45;
-        using var groovePen = new Pen(Color.FromArgb(grooveAlpha, DiskGrooveColor), 1f);
+        using var groovePen = new Pen(Color.FromArgb(grooveAlpha, diskGrooveColor), 1f);
         for (var r = size / 5; r < size / 2 - 4; r += 10)
             g.DrawEllipse(groovePen, cx - r, cy - r, r * 2, r * 2);
 
@@ -425,21 +450,21 @@ public sealed class SpectrumVisualizerControl : Control
 
         // --- center hub (drawn over clip, unclipped) ---
         var hub = Math.Max(22, size / 6);
-        using var hubBrush = new SolidBrush(HubColor);
+        using var hubBrush = new SolidBrush(hubColor);
         g.FillEllipse(hubBrush, cx - hub / 2, cy - hub / 2, hub, hub);
 
         var dot = Math.Max(6, hub / 3);
-        using var dotBrush = new SolidBrush(HubDotColor);
+        using var dotBrush = new SolidBrush(hubDotColor);
         g.FillEllipse(dotBrush, cx - dot / 2, cy - dot / 2, dot, dot);
 
         // Outer edge ring
-        using var ring = new Pen(Color.FromArgb(72, RingColor), 2f);
+        using var ring = new Pen(Color.FromArgb(72, ringColor), 2f);
         g.DrawEllipse(ring, diskRect);
 
         // Idle label when not playing
         if (!isActive)
         {
-            using var tb = new SolidBrush(IdleLabelColor);
+            using var tb = new SolidBrush(idleLabelColor);
             using var sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Far };
             g.DrawString("paused", Font, tb, new RectangleF(bounds.X, bounds.Y, bounds.Width, cy - hub / 2f - 6), sf);
         }
