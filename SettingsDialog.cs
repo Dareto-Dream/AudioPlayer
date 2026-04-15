@@ -254,15 +254,23 @@ internal sealed class SettingsDialog : Form
     {
         cmbThemeMode.Items.AddRange(
             [
-                new SelectionOption<ThemeMode>("Dark", ThemeMode.Dark),
-                new SelectionOption<ThemeMode>("Light", ThemeMode.Light)
+                new SelectionOption<ThemeMode>("Dark",     ThemeMode.Dark),
+                new SelectionOption<ThemeMode>("Light",    ThemeMode.Light),
+                new SelectionOption<ThemeMode>("OLED",     ThemeMode.Oled),
+                new SelectionOption<ThemeMode>("Midnight", ThemeMode.Midnight)
             ]);
         cmbAccent.Items.AddRange(
             [
-                new SelectionOption<ThemeAccent>("Amber", ThemeAccent.Amber),
-                new SelectionOption<ThemeAccent>("Ocean", ThemeAccent.Ocean),
-                new SelectionOption<ThemeAccent>("Rose", ThemeAccent.Rose),
-                new SelectionOption<ThemeAccent>("Forest", ThemeAccent.Forest)
+                new SelectionOption<ThemeAccent>("Amber",   ThemeAccent.Amber),
+                new SelectionOption<ThemeAccent>("Ocean",   ThemeAccent.Ocean),
+                new SelectionOption<ThemeAccent>("Rose",    ThemeAccent.Rose),
+                new SelectionOption<ThemeAccent>("Forest",  ThemeAccent.Forest),
+                new SelectionOption<ThemeAccent>("Violet",  ThemeAccent.Violet),
+                new SelectionOption<ThemeAccent>("Crimson", ThemeAccent.Crimson),
+                new SelectionOption<ThemeAccent>("Cyan",    ThemeAccent.Cyan),
+                new SelectionOption<ThemeAccent>("Mint",    ThemeAccent.Mint),
+                new SelectionOption<ThemeAccent>("Sunset",  ThemeAccent.Sunset),
+                new SelectionOption<ThemeAccent>("Gold",    ThemeAccent.Gold)
             ]);
         cmbCurrentVisualizer.Items.AddRange(currentVisualizerOptions.Select(static option => (object)option).ToArray());
         cmbDefaultVisualizer.Items.AddRange(defaultVisualizerOptions.Select(static option => (object)option).ToArray());

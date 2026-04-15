@@ -25,34 +25,70 @@ internal sealed class ThemePalette
     public static ThemePalette Create(ThemeMode mode, ThemeAccent accent)
     {
         var (accentPrimary, accentSecondary) = GetAccentColors(accent);
-        var isDark = mode == ThemeMode.Dark;
-        var window = isDark
-            ? Color.FromArgb(23, 20, 24)
-            : Color.FromArgb(244, 239, 233);
-        var surface = isDark
-            ? Color.FromArgb(31, 27, 33)
-            : Color.FromArgb(255, 252, 248);
-        var surfaceAlt = isDark
-            ? Color.FromArgb(40, 35, 43)
-            : Color.FromArgb(237, 229, 220);
-        var surfaceRaised = isDark
-            ? Color.FromArgb(48, 42, 51)
-            : Color.FromArgb(248, 244, 238);
-        var textPrimary = isDark
-            ? Color.FromArgb(245, 238, 229)
-            : Color.FromArgb(31, 23, 17);
-        var textSecondary = isDark
-            ? Color.FromArgb(189, 172, 157)
-            : Color.FromArgb(103, 87, 74);
-        var textSoft = isDark
-            ? Color.FromArgb(166, 149, 136)
-            : Color.FromArgb(126, 111, 98);
-        var textMuted = isDark
-            ? Color.FromArgb(132, 120, 111)
-            : Color.FromArgb(151, 137, 125);
-        var border = isDark
-            ? Color.FromArgb(87, 71, 61)
-            : Color.FromArgb(206, 191, 177);
+        var isDark = mode != ThemeMode.Light;
+        var window = mode switch
+        {
+            ThemeMode.Light    => Color.FromArgb(244, 239, 233),
+            ThemeMode.Oled     => Color.FromArgb(2,   2,   2),
+            ThemeMode.Midnight => Color.FromArgb(8,   10,  24),
+            _                  => Color.FromArgb(23,  20,  24)
+        };
+        var surface = mode switch
+        {
+            ThemeMode.Light    => Color.FromArgb(255, 252, 248),
+            ThemeMode.Oled     => Color.FromArgb(12,  10,  14),
+            ThemeMode.Midnight => Color.FromArgb(13,  16,  35),
+            _                  => Color.FromArgb(31,  27,  33)
+        };
+        var surfaceAlt = mode switch
+        {
+            ThemeMode.Light    => Color.FromArgb(237, 229, 220),
+            ThemeMode.Oled     => Color.FromArgb(20,  18,  22),
+            ThemeMode.Midnight => Color.FromArgb(20,  24,  50),
+            _                  => Color.FromArgb(40,  35,  43)
+        };
+        var surfaceRaised = mode switch
+        {
+            ThemeMode.Light    => Color.FromArgb(248, 244, 238),
+            ThemeMode.Oled     => Color.FromArgb(28,  25,  30),
+            ThemeMode.Midnight => Color.FromArgb(28,  33,  64),
+            _                  => Color.FromArgb(48,  42,  51)
+        };
+        var textPrimary = mode switch
+        {
+            ThemeMode.Light    => Color.FromArgb(31,  23,  17),
+            ThemeMode.Oled     => Color.FromArgb(248, 244, 240),
+            ThemeMode.Midnight => Color.FromArgb(218, 226, 255),
+            _                  => Color.FromArgb(245, 238, 229)
+        };
+        var textSecondary = mode switch
+        {
+            ThemeMode.Light    => Color.FromArgb(103, 87,  74),
+            ThemeMode.Oled     => Color.FromArgb(185, 170, 158),
+            ThemeMode.Midnight => Color.FromArgb(140, 158, 210),
+            _                  => Color.FromArgb(189, 172, 157)
+        };
+        var textSoft = mode switch
+        {
+            ThemeMode.Light    => Color.FromArgb(126, 111, 98),
+            ThemeMode.Oled     => Color.FromArgb(155, 143, 132),
+            ThemeMode.Midnight => Color.FromArgb(115, 133, 185),
+            _                  => Color.FromArgb(166, 149, 136)
+        };
+        var textMuted = mode switch
+        {
+            ThemeMode.Light    => Color.FromArgb(151, 137, 125),
+            ThemeMode.Oled     => Color.FromArgb(118, 108, 100),
+            ThemeMode.Midnight => Color.FromArgb(90,  108, 162),
+            _                  => Color.FromArgb(132, 120, 111)
+        };
+        var border = mode switch
+        {
+            ThemeMode.Light    => Color.FromArgb(206, 191, 177),
+            ThemeMode.Oled     => Color.FromArgb(55,  45,  38),
+            ThemeMode.Midnight => Color.FromArgb(52,  65,  135),
+            _                  => Color.FromArgb(87,  71,  61)
+        };
         var borderStrong = Blend(border, accentPrimary, isDark ? 0.18f : 0.10f);
         var accentSoft = Blend(surfaceAlt, accentPrimary, isDark ? 0.36f : 0.18f);
         var accentContrast = GetReadableTextColor(accentPrimary);
@@ -99,10 +135,16 @@ internal sealed class ThemePalette
     private static (Color Primary, Color Secondary) GetAccentColors(ThemeAccent accent) =>
         accent switch
         {
-            ThemeAccent.Ocean => (Color.FromArgb(92, 163, 255), Color.FromArgb(55, 112, 214)),
-            ThemeAccent.Rose => (Color.FromArgb(231, 138, 167), Color.FromArgb(206, 95, 129)),
-            ThemeAccent.Forest => (Color.FromArgb(128, 193, 139), Color.FromArgb(67, 140, 102)),
-            _ => (Color.FromArgb(244, 176, 87), Color.FromArgb(224, 114, 83))
+            ThemeAccent.Ocean   => (Color.FromArgb(92,  163, 255), Color.FromArgb(55,  112, 214)),
+            ThemeAccent.Rose    => (Color.FromArgb(231, 138, 167), Color.FromArgb(206, 95,  129)),
+            ThemeAccent.Forest  => (Color.FromArgb(128, 193, 139), Color.FromArgb(67,  140, 102)),
+            ThemeAccent.Violet  => (Color.FromArgb(168, 130, 242), Color.FromArgb(118, 76,  210)),
+            ThemeAccent.Crimson => (Color.FromArgb(222, 82,  102), Color.FromArgb(178, 44,  70)),
+            ThemeAccent.Cyan    => (Color.FromArgb(68,  202, 222), Color.FromArgb(28,  156, 182)),
+            ThemeAccent.Mint    => (Color.FromArgb(98,  212, 176), Color.FromArgb(44,  170, 136)),
+            ThemeAccent.Sunset  => (Color.FromArgb(252, 132, 68),  Color.FromArgb(220, 76,  44)),
+            ThemeAccent.Gold    => (Color.FromArgb(232, 192, 58),  Color.FromArgb(200, 148, 24)),
+            _                   => (Color.FromArgb(244, 176, 87),  Color.FromArgb(224, 114, 83))
         };
 
     private static Color GetReadableTextColor(Color background)

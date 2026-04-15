@@ -129,8 +129,13 @@ public sealed class SpectrumVisualizerControl : Control
         peakLevel = Math.Max(frame.PeakLevel * sensitivity, peakLevel * (activePlayback ? 0.90f : 0.95f));
         rmsLevel = Math.Max(frame.RmsLevel * sensitivity, rmsLevel * (activePlayback ? 0.92f : 0.96f));
 
-        if (mode == VisualizerMode.SpinningDisk && activePlayback)
-            diskAngle = (diskAngle + 0.38f) % 360f;
+        if (activePlayback)
+        {
+            if (mode == VisualizerMode.SpinningDisk)
+                diskAngle = (diskAngle + 0.38f) % 360f;
+            else if (mode == VisualizerMode.RadialSpectrum)
+                diskAngle = (diskAngle + 0.12f) % 360f;
+        }
 
         Invalidate();
     }

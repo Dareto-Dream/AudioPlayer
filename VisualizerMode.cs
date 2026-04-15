@@ -5,5 +5,9 @@ public enum VisualizerMode
     Spectrum,
     MirrorSpectrum,
     Waveform,
-    SpinningDisk
+    SpinningDisk,
+    RadialSpectrum,
+    Oscilloscope,
+    VUMeter,
+    SpectrumWave
 }

@@ -7,7 +7,9 @@ namespace AudioPlayer;
 internal enum ThemeMode
 {
     Dark,
-    Light
+    Light,
+    Oled,
+    Midnight
 }
 
 internal enum ThemeAccent
@@ -15,7 +17,13 @@ internal enum ThemeAccent
     Amber,
     Ocean,
     Rose,
-    Forest
+    Forest,
+    Violet,
+    Crimson,
+    Cyan,
+    Mint,
+    Sunset,
+    Gold
 }
 
 internal sealed class AppSettings

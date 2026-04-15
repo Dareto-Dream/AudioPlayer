@@ -11,10 +11,14 @@ internal static class VisualizerCatalog
 {
     private static readonly VisualizerDefinition[] Definitions =
     [
-        new(VisualizerMode.Spectrum, "Spectrum", new SpectrumBarsVisualizerRenderer(mirrored: false)),
+        new(VisualizerMode.Spectrum,       "Spectrum",        new SpectrumBarsVisualizerRenderer(mirrored: false)),
         new(VisualizerMode.MirrorSpectrum, "Mirror Spectrum", new SpectrumBarsVisualizerRenderer(mirrored: true)),
-        new(VisualizerMode.Waveform, "Waveform", new WaveformVisualizerRenderer()),
-        new(VisualizerMode.SpinningDisk, "Spinning Disk", new SpinningDiskVisualizerRenderer(), RequiresAlbumArt: true)
+        new(VisualizerMode.Waveform,       "Waveform",        new WaveformVisualizerRenderer()),
+        new(VisualizerMode.SpinningDisk,   "Spinning Disk",   new SpinningDiskVisualizerRenderer(), RequiresAlbumArt: true),
+        new(VisualizerMode.RadialSpectrum, "Radial Spectrum", new RadialSpectrumVisualizerRenderer()),
+        new(VisualizerMode.Oscilloscope,   "Oscilloscope",    new OscilloscopeVisualizerRenderer()),
+        new(VisualizerMode.VUMeter,        "VU Meter",        new VUMeterVisualizerRenderer()),
+        new(VisualizerMode.SpectrumWave,   "Spectrum Wave",   new SpectrumWaveVisualizerRenderer())
     ];
 
     private static readonly Dictionary<VisualizerMode, VisualizerDefinition> DefinitionsByMode =
