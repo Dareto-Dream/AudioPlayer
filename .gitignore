@@ -1,8 +1,9 @@
-# Build results
+# Build outputs
 [Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/
 [Rr]eleases/
+!releases/RELEASES
 x64/
 x86/
 [Ww][Ii][Nn]32/
@@ -11,47 +12,49 @@ x86/
 bld/
 [Bb]in/
 [Oo]bj/
+publish/
+output/
+
+# Build logs
 [Ll]og/
 [Ll]ogs/
+*.log
 
-# Visual Studio cache/options directory
+# Visual Studio / Rider / VS Code
 .vs/
-
-# Visual Studio Code
 .vscode/
+.idea/
 *.code-workspace
+*.sln.iml
 
 # User-specific files
 *.rsuser
 *.suo
 *.user
+*.userosscache
+*.sln.docstates
+*.userprefs
 *.userobject
 *.dbmdl
 *.dbproj.json
 *.rptproj.json
 *.rptproj.bak
 
-# Rider
-.idea/
-*.sln.iml
-
-# NuGet Packages
+# NuGet packages/artifacts
 *.nupkg
 *.snupkg
 *.nuget.props
 *.nuget.targets
 
-# Rider files
-.idea/
-*.sln.iml
-
-# Output folder
-output/
+# Test / coverage
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
 
 # OS
 .DS_Store
 Thumbs.db
-
 
 # Python
 __pycache__/
