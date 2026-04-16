@@ -1,4 +1,4 @@
-namespace AudioPlayer
+namespace Spectrallis
 {
     partial class Form1
     {
@@ -34,6 +34,12 @@ namespace AudioPlayer
         // ── Visualizer ─────────────────────────────────────────────────────
         private SpectrumVisualizerControl visualizerControl;
         private LyricsViewControl lyricsView;
+        private System.Windows.Forms.FlowLayoutPanel visualizerNavPanel;
+        private ModernButton btnVisualizerPrev;
+        private System.Windows.Forms.Label lblVisualizerModeName;
+        private ModernButton btnVisualizerNext;
+        private ModernSwitch chkVisualizerAutoCycle;
+        private System.Windows.Forms.Label lblVisualizerAutoCycleCaption;
 
         // ── Seek bar ───────────────────────────────────────────────────────
         private System.Windows.Forms.Label lblCurrentTime;
@@ -50,7 +56,8 @@ namespace AudioPlayer
         // ── Settings ───────────────────────────────────────────────────────
         private System.Windows.Forms.Label lblVisualizerModeCaption;
         private ModernComboBox cmbVisualizerMode;
-        private System.Windows.Forms.CheckBox chkPeakHold;
+        private ModernSwitch chkPeakHold;
+        private System.Windows.Forms.Label lblPeakHoldCaption;
         private System.Windows.Forms.Label lblSampleRateCaption;
         private ModernComboBox cmbSampleRate;
         private System.Windows.Forms.Label lblSensitivityCaption;
@@ -104,6 +111,13 @@ namespace AudioPlayer
             visualizerControl = new SpectrumVisualizerControl();
             lyricsView        = new LyricsViewControl();
 
+            visualizerNavPanel   = new System.Windows.Forms.FlowLayoutPanel();
+            btnVisualizerPrev    = new ModernButton();
+            lblVisualizerModeName = new System.Windows.Forms.Label();
+            btnVisualizerNext    = new ModernButton();
+            chkVisualizerAutoCycle = new ModernSwitch();
+            lblVisualizerAutoCycleCaption = new System.Windows.Forms.Label();
+
             lblCurrentTime = new System.Windows.Forms.Label();
             trackBarSeek   = new ModernSlider();
             lblDuration    = new System.Windows.Forms.Label();
@@ -117,7 +131,8 @@ namespace AudioPlayer
 
             lblVisualizerModeCaption = new System.Windows.Forms.Label();
             cmbVisualizerMode        = new ModernComboBox();
-            chkPeakHold              = new System.Windows.Forms.CheckBox();
+            chkPeakHold              = new ModernSwitch();
+            lblPeakHoldCaption       = new System.Windows.Forms.Label();
             lblSampleRateCaption     = new System.Windows.Forms.Label();
             cmbSampleRate            = new ModernComboBox();
             lblSensitivityCaption    = new System.Windows.Forms.Label();
@@ -138,32 +153,35 @@ namespace AudioPlayer
             transportLayout.SuspendLayout();
             leftButtonsPanel.SuspendLayout();
             rightControlsPanel.SuspendLayout();
+            visualizerNavPanel.SuspendLayout();
             settingsPanel.SuspendLayout();
             menuStrip1.SuspendLayout();
             statusStrip1.SuspendLayout();
             SuspendLayout();
 
             // ════════════════════════════════════════════════════════════════
-            // rootLayout  — 5 rows: track-info / visualizer / seek / transport / settings
+            // rootLayout  — 6 rows: track-info / visualizer / viz-nav / seek / transport / settings
             // ════════════════════════════════════════════════════════════════
             rootLayout.ColumnCount = 1;
             rootLayout.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
             rootLayout.Controls.Add(trackInfoPanel,  0, 0);
             rootLayout.Controls.Add(contentLayout, 0, 1);
-            rootLayout.Controls.Add(seekLayout,      0, 2);
-            rootLayout.Controls.Add(transportLayout, 0, 3);
-            rootLayout.Controls.Add(settingsPanel,   0, 4);
+            rootLayout.Controls.Add(visualizerNavPanel, 0, 2);
+            rootLayout.Controls.Add(seekLayout,      0, 3);
+            rootLayout.Controls.Add(transportLayout, 0, 4);
+            rootLayout.Controls.Add(settingsPanel,   0, 5);
             rootLayout.Dock     = System.Windows.Forms.DockStyle.Fill;
             rootLayout.Location = new System.Drawing.Point(0, 34);
             rootLayout.Margin   = new System.Windows.Forms.Padding(0);
             rootLayout.Name     = "rootLayout";
             rootLayout.Padding  = new System.Windows.Forms.Padding(28, 18, 28, 0);
-            rootLayout.RowCount = 5;
+            rootLayout.RowCount = 6;
             rootLayout.RowStyles.Add(new System.Windows.Forms.RowStyle());                                                    // 0 track info
             rootLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));         // 1 visualizer
-            rootLayout.RowStyles.Add(new System.Windows.Forms.RowStyle());                                                    // 2 seek
-            rootLayout.RowStyles.Add(new System.Windows.Forms.RowStyle());                                                    // 3 transport
-            rootLayout.RowStyles.Add(new System.Windows.Forms.RowStyle());                                                    // 4 settings
+            rootLayout.RowStyles.Add(new System.Windows.Forms.RowStyle());                                                    // 2 viz nav
+            rootLayout.RowStyles.Add(new System.Windows.Forms.RowStyle());                                                    // 3 seek
+            rootLayout.RowStyles.Add(new System.Windows.Forms.RowStyle());                                                    // 4 transport
+            rootLayout.RowStyles.Add(new System.Windows.Forms.RowStyle());                                                    // 5 settings
             rootLayout.TabIndex = 0;
 
             contentLayout.ColumnCount = 2;
@@ -235,7 +253,7 @@ namespace AudioPlayer
             // ════════════════════════════════════════════════════════════════
             visualizerControl.Dock   = System.Windows.Forms.DockStyle.Fill;
             visualizerControl.Margin = new System.Windows.Forms.Padding(0, 0, 0, 0);
-            visualizerControl.Mode   = AudioPlayer.VisualizerMode.MirrorSpectrum;
+            visualizerControl.Mode   = Spectrallis.VisualizerMode.MirrorSpectrum;
             visualizerControl.Name   = "visualizerControl";
             visualizerControl.ShowPeaks = true;
             visualizerControl.TabIndex  = 1;
@@ -247,6 +265,66 @@ namespace AudioPlayer
             lyricsView.Name        = "lyricsView";
             lyricsView.TabIndex    = 2;
             lyricsView.Visible     = false;
+
+            // ════════════════════════════════════════════════════════════════
+            // visualizerNavPanel  — prev / name / next / auto-cycle
+            // ════════════════════════════════════════════════════════════════
+            visualizerNavPanel.AutoSize     = true;
+            visualizerNavPanel.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            visualizerNavPanel.Controls.Add(btnVisualizerPrev);
+            visualizerNavPanel.Controls.Add(lblVisualizerModeName);
+            visualizerNavPanel.Controls.Add(btnVisualizerNext);
+            visualizerNavPanel.Controls.Add(lblVisualizerAutoCycleCaption);
+            visualizerNavPanel.Controls.Add(chkVisualizerAutoCycle);
+            visualizerNavPanel.Dock           = System.Windows.Forms.DockStyle.Fill;
+            visualizerNavPanel.Margin         = new System.Windows.Forms.Padding(0, 4, 0, 6);
+            visualizerNavPanel.Name           = "visualizerNavPanel";
+            visualizerNavPanel.WrapContents   = false;
+
+            // ── btnVisualizerPrev ─────────────────────────────────────────────
+            btnVisualizerPrev.IsGhost       = true;
+            btnVisualizerPrev.Font          = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular);
+            btnVisualizerPrev.Margin        = new System.Windows.Forms.Padding(0, 0, 6, 0);
+            btnVisualizerPrev.Name          = "btnVisualizerPrev";
+            btnVisualizerPrev.Size          = new System.Drawing.Size(30, 28);
+            btnVisualizerPrev.TabIndex      = 0;
+            btnVisualizerPrev.Text          = "‹";
+            btnVisualizerPrev.Click        += btnVisualizerPrev_Click;
+            toolTip1.SetToolTip(btnVisualizerPrev, "Previous visualizer mode");
+
+            // ── lblVisualizerModeName ─────────────────────────────────────────
+            lblVisualizerModeName.AutoSize  = true;
+            lblVisualizerModeName.Font      = new System.Drawing.Font("Segoe UI", 8.5F);
+            lblVisualizerModeName.Margin    = new System.Windows.Forms.Padding(0, 0, 0, 0);
+            lblVisualizerModeName.Name      = "lblVisualizerModeName";
+            lblVisualizerModeName.Text      = "Mirror Spectrum";
+            lblVisualizerModeName.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+
+            // ── btnVisualizerNext ─────────────────────────────────────────────
+            btnVisualizerNext.IsGhost       = true;
+            btnVisualizerNext.Font          = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Regular);
+            btnVisualizerNext.Margin        = new System.Windows.Forms.Padding(6, 0, 16, 0);
+            btnVisualizerNext.Name          = "btnVisualizerNext";
+            btnVisualizerNext.Size          = new System.Drawing.Size(30, 28);
+            btnVisualizerNext.TabIndex      = 1;
+            btnVisualizerNext.Text          = "›";
+            btnVisualizerNext.Click        += btnVisualizerNext_Click;
+            toolTip1.SetToolTip(btnVisualizerNext, "Next visualizer mode");
+
+            // ── chkVisualizerAutoCycle ────────────────────────────────────────
+            chkVisualizerAutoCycle.Margin = new System.Windows.Forms.Padding(0, 0, 8, 0);
+            chkVisualizerAutoCycle.Name   = "chkVisualizerAutoCycle";
+            chkVisualizerAutoCycle.CheckedChanged += chkVisualizerAutoCycle_CheckedChanged;
+            toolTip1.SetToolTip(chkVisualizerAutoCycle, "Automatically cycle through visualizer modes");
+
+            // ── lblVisualizerAutoCycleCaption ─────────────────────────────
+            lblVisualizerAutoCycleCaption.Anchor    = System.Windows.Forms.AnchorStyles.Left;
+            lblVisualizerAutoCycleCaption.AutoSize  = true;
+            lblVisualizerAutoCycleCaption.Font      = new System.Drawing.Font("Segoe UI", 8F);
+            lblVisualizerAutoCycleCaption.ForeColor = System.Drawing.Color.FromArgb(72, 90, 136);
+            lblVisualizerAutoCycleCaption.Margin    = new System.Windows.Forms.Padding(0, 0, 6, 0);
+            lblVisualizerAutoCycleCaption.Name      = "lblVisualizerAutoCycleCaption";
+            lblVisualizerAutoCycleCaption.Text      = "Auto-cycle";
 
             // ════════════════════════════════════════════════════════════════
             // seekLayout  — time / slider / time
@@ -407,6 +485,7 @@ namespace AudioPlayer
             settingsPanel.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             settingsPanel.Controls.Add(lblVisualizerModeCaption);
             settingsPanel.Controls.Add(cmbVisualizerMode);
+            settingsPanel.Controls.Add(lblPeakHoldCaption);
             settingsPanel.Controls.Add(chkPeakHold);
             settingsPanel.Controls.Add(lblSampleRateCaption);
             settingsPanel.Controls.Add(cmbSampleRate);
@@ -510,17 +589,20 @@ namespace AudioPlayer
             cmbVisualizerMode.SelectedIndexChanged += cmbVisualizerMode_SelectedIndexChanged;
 
             // ── chkPeakHold ───────────────────────────────────────────────
-            chkPeakHold.Anchor              = System.Windows.Forms.AnchorStyles.Left;
-            chkPeakHold.AutoSize            = true;
-            chkPeakHold.BackColor           = System.Drawing.Color.Transparent;
-            chkPeakHold.Font                = new System.Drawing.Font("Segoe UI", 8F);
-            chkPeakHold.ForeColor           = System.Drawing.Color.FromArgb(90, 108, 155);
-            chkPeakHold.Margin              = new System.Windows.Forms.Padding(0, 0, 12, 0);
-            chkPeakHold.Name                = "chkPeakHold";
-            chkPeakHold.Text                = "Peak hold";
-            chkPeakHold.UseVisualStyleBackColor = false;
-            chkPeakHold.TabIndex            = 6;
-            chkPeakHold.CheckedChanged     += chkPeakHold_CheckedChanged;
+            chkPeakHold.Anchor   = System.Windows.Forms.AnchorStyles.Left;
+            chkPeakHold.Margin   = new System.Windows.Forms.Padding(0, 0, 12, 0);
+            chkPeakHold.Name     = "chkPeakHold";
+            chkPeakHold.TabIndex = 6;
+            chkPeakHold.CheckedChanged += chkPeakHold_CheckedChanged;
+
+            // ── lblPeakHoldCaption ────────────────────────────────────────
+            lblPeakHoldCaption.Anchor    = System.Windows.Forms.AnchorStyles.Left;
+            lblPeakHoldCaption.AutoSize  = true;
+            lblPeakHoldCaption.Font      = new System.Drawing.Font("Segoe UI", 8F);
+            lblPeakHoldCaption.ForeColor = System.Drawing.Color.FromArgb(72, 90, 136);
+            lblPeakHoldCaption.Margin    = new System.Windows.Forms.Padding(0, 0, 6, 0);
+            lblPeakHoldCaption.Name      = "lblPeakHoldCaption";
+            lblPeakHoldCaption.Text      = "Peak hold";
 
             // ── lblSampleRateCaption ──────────────────────────────────────
             lblSampleRateCaption.Anchor    = System.Windows.Forms.AnchorStyles.Left;
@@ -635,6 +717,8 @@ namespace AudioPlayer
             leftButtonsPanel.PerformLayout();
             rightControlsPanel.ResumeLayout(false);
             rightControlsPanel.PerformLayout();
+            visualizerNavPanel.ResumeLayout(false);
+            visualizerNavPanel.PerformLayout();
             settingsPanel.ResumeLayout(false);
             settingsPanel.PerformLayout();
             menuStrip1.ResumeLayout(false);

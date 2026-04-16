@@ -2,7 +2,7 @@ using System.Text.Json.Nodes;
 using TagLib;
 using TagLib.Id3v2;
 
-namespace AudioPlayer;
+namespace Spectrallis;
 
 internal static class EmbeddedVisualizerMetadataReader
 {

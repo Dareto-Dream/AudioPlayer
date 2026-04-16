@@ -1,4 +1,4 @@
-namespace AudioPlayer;
+namespace Spectrallis;
 
 public enum VisualizerMode
 {

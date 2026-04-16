@@ -4,7 +4,7 @@ using System.Linq;
 using System.Windows.Forms;
 using Squirrel;
 
-namespace AudioPlayer;
+namespace Spectrallis;
 
 internal static class Program
 {

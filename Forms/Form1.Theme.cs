@@ -1,6 +1,6 @@
 using System.Drawing;
 
-namespace AudioPlayer;
+namespace Spectrallis;
 
 public partial class Form1
 {
@@ -38,7 +38,17 @@ public partial class Form1
         lblVisualizerModeCaption.ForeColor = TextMutedColor;
         lblSampleRateCaption.ForeColor = TextMutedColor;
         lblSensitivityCaption.ForeColor = TextMutedColor;
-        ThemeControlStyler.ApplyCheckBoxTheme(chkPeakHold, themePalette);
+        ThemeControlStyler.ApplySwitchTheme(chkPeakHold, themePalette);
+
+        // Visualizer nav panel
+        lblVisualizerModeName.ForeColor = TextSoftColor;
+        ThemeControlStyler.ApplyGhostButtonTheme(btnVisualizerPrev, themePalette, AccentSoftColor);
+        btnVisualizerPrev.Font = new Font("Segoe UI", 10F, FontStyle.Regular, GraphicsUnit.Point);
+        btnVisualizerPrev.Size = new Size(30, 28);
+        ThemeControlStyler.ApplyGhostButtonTheme(btnVisualizerNext, themePalette, AccentSoftColor);
+        btnVisualizerNext.Font = new Font("Segoe UI", 10F, FontStyle.Regular, GraphicsUnit.Point);
+        btnVisualizerNext.Size = new Size(30, 28);
+        ThemeControlStyler.ApplySwitchTheme(chkVisualizerAutoCycle, themePalette);
 
         ThemeControlStyler.ApplyComboBoxTheme(cmbVisualizerMode, themePalette);
         ThemeControlStyler.ApplyComboBoxTheme(cmbSampleRate, themePalette);

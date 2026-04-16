@@ -1,7 +1,7 @@
 using System.Drawing;
 using System.Numerics;
 
-namespace AudioPlayer;
+namespace Spectrallis;
 
 internal sealed class Graph3DVisualizerRenderer : VisualizerRendererBase
 {

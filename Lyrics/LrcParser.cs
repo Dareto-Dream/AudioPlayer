@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
 
-namespace AudioPlayer;
+namespace Spectrallis;
 
 internal static partial class LrcParser
 {

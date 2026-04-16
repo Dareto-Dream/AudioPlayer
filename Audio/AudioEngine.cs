@@ -3,7 +3,7 @@ using NAudio.Vorbis;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 
-namespace AudioPlayer;
+namespace Spectrallis;
 
 public sealed class AudioEngine : IDisposable
 {

@@ -2,7 +2,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Text.Json.Nodes;
 
-namespace AudioPlayer;
+namespace Spectrallis;
 
 internal sealed record EmbeddedVisualizerModule(
     string Id,

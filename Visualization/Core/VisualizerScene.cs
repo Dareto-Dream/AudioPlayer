@@ -1,6 +1,6 @@
 using System.Drawing;
 
-namespace AudioPlayer;
+namespace Spectrallis;
 
 internal readonly record struct VisualizerTheme(
     Color BackgroundTopColor,

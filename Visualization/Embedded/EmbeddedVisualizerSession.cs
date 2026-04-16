@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using Wasmtime;
 
-namespace AudioPlayer;
+namespace Spectrallis;
 
 internal sealed class EmbeddedVisualizerSession : IDisposable
 {

@@ -1,6 +1,6 @@
 using System.Drawing;
 
-namespace AudioPlayer;
+namespace Spectrallis;
 
 public sealed class LyricsViewControl : UserControl
 {

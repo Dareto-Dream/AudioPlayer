@@ -19,7 +19,7 @@
   <ItemGroup>
     <Compile Include="Program.cs" />
     <AssemblyMetadata Include="SquirrelAwareVersion" Value="1" />
-    <ProjectReference Include="..\AudioPlayer.csproj" />
+    <ProjectReference Include="..\Spectrallis.csproj" />
     <PackageReference Include="Squirrel.Windows" Version="2.0.1" />
     <Reference Include="Squirrel">
       <HintPath>$(NuGetPackageRoot)squirrel.windows\$(SquirrelWindowsVersion)\lib\Net45\Squirrel.dll</HintPath>

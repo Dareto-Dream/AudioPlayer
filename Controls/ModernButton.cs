@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.Drawing.Drawing2D;
 
-namespace AudioPlayer;
+namespace Spectrallis;
 
 /// <summary>
 /// Custom-drawn button. Supports solid, ghost, and pill variants.

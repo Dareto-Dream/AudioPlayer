@@ -1,4 +1,4 @@
-namespace AudioPlayer;
+namespace Spectrallis;
 
 public partial class Form1
 {
@@ -6,6 +6,8 @@ public partial class Form1
     {
         nowPlaying.CommandRequested -= NowPlaying_CommandRequested;
         nowPlaying.CommandRequested += NowPlaying_CommandRequested;
+        nowPlaying.SeekRequested -= NowPlaying_SeekRequested;
+        nowPlaying.SeekRequested += NowPlaying_SeekRequested;
         nowPlaying.Initialize(Handle);
         SyncNowPlayingState();
     }
@@ -53,6 +55,31 @@ public partial class Form1
                         UpdateUiState();
                     }
                     break;
+
+                case WindowsNowPlayingCommand.Next:
+                    // TODO: Implement next track functionality
+                    break;
+
+                case WindowsNowPlayingCommand.Previous:
+                    // TODO: Implement previous track functionality
+                    break;
+            }
+        }));
+    }
+
+    private void NowPlaying_SeekRequested(object? sender, TimeSpan position)
+    {
+        if (!IsHandleCreated || IsDisposed || Disposing)
+        {
+            return;
+        }
+
+        BeginInvoke(new Action(() =>
+        {
+            if (engine.IsLoaded)
+            {
+                engine.Seek((float)position.TotalSeconds);
+                UpdateUiState();
             }
         }));
     }

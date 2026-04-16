@@ -1,7 +1,7 @@
 using System.Drawing;
 using System.Drawing.Drawing2D;
 
-namespace AudioPlayer;
+namespace Spectrallis;
 
 // Retro LED VU-meter bar graph. 12 channels, each with 18 stacked segments that
 // light up green → yellow → red as level rises. Colors are blended from the theme

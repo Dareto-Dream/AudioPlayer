@@ -1,6 +1,6 @@
 using System.Collections.ObjectModel;
 
-namespace AudioPlayer;
+namespace Spectrallis;
 
 public sealed class LyricsDocument
 {

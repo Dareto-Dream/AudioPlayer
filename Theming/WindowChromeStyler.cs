@@ -1,7 +1,7 @@
 using System.Drawing;
 using System.Runtime.InteropServices;
 
-namespace AudioPlayer;
+namespace Spectrallis;
 
 internal static class WindowChromeStyler
 {

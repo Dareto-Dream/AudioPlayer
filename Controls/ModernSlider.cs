@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.Drawing.Drawing2D;
 
-namespace AudioPlayer;
+namespace Spectrallis;
 
 /// <summary>
 /// Custom-drawn horizontal slider that replaces the system TrackBar.

@@ -1,6 +1,6 @@
 using System.IO;
 
-namespace AudioPlayer;
+namespace Spectrallis;
 
 public static class SupportedAudioFormats
 {

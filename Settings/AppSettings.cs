@@ -2,7 +2,7 @@ using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace AudioPlayer;
+namespace Spectrallis;
 
 internal enum ThemeMode
 {
@@ -84,7 +84,7 @@ internal static class AppSettingsStore
     private static string SettingsPath =>
         Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "AudioPlayer",
+            "Spectrallis",
             "settings.json");
 
     public static AppSettings Load()

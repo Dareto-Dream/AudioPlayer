@@ -2,13 +2,13 @@ using System.Diagnostics;
 using System.IO;
 using Microsoft.Win32;
 
-namespace AudioPlayer;
+namespace Spectrallis;
 
 public static class DefaultAppRegistrar
 {
     private const string AppDisplayName = "Audio Player";
-    private const string AppCapabilitiesPath = @"Software\AudioPlayer\Capabilities";
-    private const string ProgId = "AudioPlayer.AudioFile";
+    private const string AppCapabilitiesPath = @"Software\Spectrallis\Capabilities";
+    private const string ProgId = "Spectrallis.AudioFile";
 
     public static void RegisterCurrentUser()
     {

@@ -1,4 +1,4 @@
-namespace AudioPlayer;
+namespace Spectrallis;
 
 public partial class Form1
 {
@@ -36,6 +36,7 @@ public partial class Form1
             trackBarSensitivity.Value = appSettings.VisualizerSensitivity;
             trackBarVolume.Value = appSettings.DefaultVolume;
             chkPeakHold.Checked = appSettings.PeakHold;
+            chkVisualizerAutoCycle.Checked = appSettings.EnableVisualizerAutoCycle;
             preMuteVolume = Math.Max(0.01f, trackBarVolume.Value / 100f);
             isMuted = trackBarVolume.Value == 0;
             engine.SetPreferredSampleRate(appSettings.PreferredSampleRate);
@@ -61,6 +62,8 @@ public partial class Form1
 
         if (!isApplyingSettings)
             ResetVisualizerCycleDeadline();
+
+        UpdateVisualizerNameLabel();
     }
 
     private void RefreshVisualizerModeOptions(VisualizerMode? preferredMode = null)
@@ -93,6 +96,30 @@ public partial class Form1
 
         ApplyVisualizerSettings();
         ResetVisualizerCycleDeadline();
+        UpdateVisualizerNameLabel();
+    }
+
+    private void UpdateVisualizerNameLabel()
+    {
+        var name = visualizerControl.UsesEmbeddedVisualizer
+            ? (engine.CurrentTrack?.EmbeddedVisualizer?.DisplayName ?? "Embedded")
+            : (cmbVisualizerMode.SelectedItem as SelectionOption<VisualizerMode>)?.Label ?? "";
+        lblVisualizerModeName.Text = name;
+        btnVisualizerPrev.Enabled = !visualizerControl.UsesEmbeddedVisualizer && cmbVisualizerMode.Items.Count > 1;
+        btnVisualizerNext.Enabled = !visualizerControl.UsesEmbeddedVisualizer && cmbVisualizerMode.Items.Count > 1;
+        chkVisualizerAutoCycle.Enabled = !visualizerControl.UsesEmbeddedVisualizer;
+    }
+
+    private void PreviousVisualizerMode()
+    {
+        if (visualizerControl.UsesEmbeddedVisualizer || cmbVisualizerMode.Items.Count <= 1)
+            return;
+
+        cmbVisualizerMode.SelectedIndex = cmbVisualizerMode.SelectedIndex switch
+        {
+            <= 0 => cmbVisualizerMode.Items.Count - 1,
+            var i => i - 1
+        };
     }
 
     private SelectionOption<VisualizerMode>[] GetAvailableVisualizerModeOptions() =>

@@ -1,13 +1,16 @@
+using System.Diagnostics;
 using Windows.Media;
 using Windows.Storage.Streams;
 
-namespace AudioPlayer;
+namespace Spectrallis;
 
 internal enum WindowsNowPlayingCommand
 {
     Play,
     Pause,
-    Stop
+    Stop,
+    Next,
+    Previous
 }
 
 internal sealed class WindowsNowPlayingService : IDisposable
@@ -20,11 +23,15 @@ internal sealed class WindowsNowPlayingService : IDisposable
     private bool? isPlayEnabled;
     private bool? isPauseEnabled;
     private bool? isStopEnabled;
+    private bool? isNextEnabled;
+    private bool? isPreviousEnabled;
     private MediaPlaybackStatus? playbackStatus;
     private TimeSpan lastTimelinePosition = TimeSpan.MinValue;
     private TimeSpan lastTimelineDuration = TimeSpan.MinValue;
+    private bool disposedValue;
 
     public event EventHandler<WindowsNowPlayingCommand>? CommandRequested;
+    public event EventHandler<TimeSpan>? SeekRequested;
 
     public void Initialize(IntPtr handle)
     {
@@ -45,10 +52,12 @@ internal sealed class WindowsNowPlayingService : IDisposable
             controls = SystemMediaTransportControlsInterop.GetForWindow(handle);
             windowHandle = handle;
             controls.ButtonPressed += Controls_ButtonPressed;
+            controls.PlaybackPositionChangeRequested += Controls_PlaybackPositionChangeRequested;
             InvalidateCaches();
         }
-        catch
+        catch (Exception ex)
         {
+            Debug.WriteLine($"Failed to initialize Now Playing: {ex}");
             controls = null;
             windowHandle = IntPtr.Zero;
         }
@@ -74,8 +83,21 @@ internal sealed class WindowsNowPlayingService : IDisposable
 
     public void Dispose()
     {
-        ResetTransportControls();
+        Dispose(disposing: true);
         GC.SuppressFinalize(this);
+    }
+
+    private void Dispose(bool disposing)
+    {
+        if (disposedValue)
+            return;
+
+        if (disposing)
+        {
+            ResetTransportControls();
+        }
+
+        disposedValue = true;
     }
 
     private void ApplyMetadata(AudioTrackInfo track)
@@ -89,20 +111,33 @@ internal sealed class WindowsNowPlayingService : IDisposable
         lastTimelinePosition = TimeSpan.MinValue;
         lastTimelineDuration = TimeSpan.MinValue;
 
-        var updater = controls.DisplayUpdater;
-        updater.ClearAll();
-        updater.Type = MediaPlaybackType.Music;
-        updater.MusicProperties.Title = track.DisplayName;
-        updater.MusicProperties.Artist = track.Artist ?? string.Empty;
-        updater.MusicProperties.AlbumTitle = track.Album ?? string.Empty;
-        updater.Thumbnail = CreateThumbnail(track.AlbumArtBytes);
-        updater.Update();
+        try
+        {
+            var updater = controls.DisplayUpdater;
+            updater.ClearAll();
+            updater.Type = MediaPlaybackType.Music;
+            updater.MusicProperties.Title = track.DisplayName;
+            updater.MusicProperties.Artist = track.Artist ?? string.Empty;
+            updater.MusicProperties.AlbumTitle = track.Album ?? string.Empty;
+            updater.MusicProperties.AlbumArtist = track.Artist ?? string.Empty;
+            updater.Thumbnail = CreateThumbnail(track.AlbumArtBytes);
+            updater.Update();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Failed to update metadata: {ex}");
+        }
     }
 
     private void ApplyTransportState(bool isPlaying, TimeSpan position)
     {
         SetTransportEnabled(true);
-        SetButtonStates(playEnabled: !isPlaying, pauseEnabled: isPlaying, stopEnabled: true);
+        SetButtonStates(
+            playEnabled: !isPlaying,
+            pauseEnabled: isPlaying,
+            stopEnabled: true,
+            nextEnabled: true,
+            previousEnabled: true);
         SetPlaybackStatus(isPlaying
             ? MediaPlaybackStatus.Playing
             : position <= TimeSpan.FromMilliseconds(250)
@@ -159,12 +194,24 @@ internal sealed class WindowsNowPlayingService : IDisposable
 
         currentTrack = null;
         DisposeArtworkStream();
-        SetButtonStates(playEnabled: false, pauseEnabled: false, stopEnabled: false);
+        SetButtonStates(
+            playEnabled: false,
+            pauseEnabled: false,
+            stopEnabled: false,
+            nextEnabled: false,
+            previousEnabled: false);
         SetPlaybackStatus(MediaPlaybackStatus.Closed);
 
-        var updater = controls.DisplayUpdater;
-        updater.ClearAll();
-        updater.Update();
+        try
+        {
+            var updater = controls.DisplayUpdater;
+            updater.ClearAll();
+            updater.Update();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Failed to clear display: {ex}");
+        }
 
         ClearTimeline();
         SetTransportEnabled(false);
@@ -199,13 +246,31 @@ internal sealed class WindowsNowPlayingService : IDisposable
             return null;
         }
 
-        artworkStream = new InMemoryRandomAccessStream();
-        using var writer = new DataWriter(artworkStream);
-        writer.WriteBytes(albumArtBytes);
-        writer.StoreAsync().AsTask().GetAwaiter().GetResult();
-        writer.DetachStream();
-        artworkStream.Seek(0);
-        return RandomAccessStreamReference.CreateFromStream(artworkStream);
+        try
+        {
+            artworkStream = new InMemoryRandomAccessStream();
+            using var writer = new DataWriter(artworkStream);
+            writer.WriteBytes(albumArtBytes);
+
+            var storeTask = writer.StoreAsync().AsTask();
+            storeTask.Wait(5000); // 5 second timeout
+
+            if (!storeTask.IsCompletedSuccessfully)
+            {
+                Debug.WriteLine("Thumbnail write operation timed out or failed");
+                return null;
+            }
+
+            writer.DetachStream();
+            artworkStream.Seek(0);
+            return RandomAccessStreamReference.CreateFromStream(artworkStream);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Failed to create thumbnail: {ex}");
+            DisposeArtworkStream();
+            return null;
+        }
     }
 
     private void SetTransportEnabled(bool enabled)
@@ -219,29 +284,48 @@ internal sealed class WindowsNowPlayingService : IDisposable
         isEnabled = enabled;
     }
 
-    private void SetButtonStates(bool playEnabled, bool pauseEnabled, bool stopEnabled)
+    private void SetButtonStates(bool playEnabled, bool pauseEnabled, bool stopEnabled, bool nextEnabled = false, bool previousEnabled = false)
     {
         if (controls is null)
         {
             return;
         }
 
-        if (isPlayEnabled != playEnabled)
+        try
         {
-            controls.IsPlayEnabled = playEnabled;
-            isPlayEnabled = playEnabled;
-        }
+            if (isPlayEnabled != playEnabled)
+            {
+                controls.IsPlayEnabled = playEnabled;
+                isPlayEnabled = playEnabled;
+            }
 
-        if (isPauseEnabled != pauseEnabled)
-        {
-            controls.IsPauseEnabled = pauseEnabled;
-            isPauseEnabled = pauseEnabled;
-        }
+            if (isPauseEnabled != pauseEnabled)
+            {
+                controls.IsPauseEnabled = pauseEnabled;
+                isPauseEnabled = pauseEnabled;
+            }
 
-        if (isStopEnabled != stopEnabled)
+            if (isStopEnabled != stopEnabled)
+            {
+                controls.IsStopEnabled = stopEnabled;
+                isStopEnabled = stopEnabled;
+            }
+
+            if (isNextEnabled != nextEnabled)
+            {
+                controls.IsNextEnabled = nextEnabled;
+                isNextEnabled = nextEnabled;
+            }
+
+            if (isPreviousEnabled != previousEnabled)
+            {
+                controls.IsPreviousEnabled = previousEnabled;
+                isPreviousEnabled = previousEnabled;
+            }
+        }
+        catch (Exception ex)
         {
-            controls.IsStopEnabled = stopEnabled;
-            isStopEnabled = stopEnabled;
+            Debug.WriteLine($"Failed to set button states: {ex}");
         }
     }
 
@@ -252,8 +336,15 @@ internal sealed class WindowsNowPlayingService : IDisposable
             return;
         }
 
-        controls.PlaybackStatus = status;
-        playbackStatus = status;
+        try
+        {
+            controls.PlaybackStatus = status;
+            playbackStatus = status;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Failed to set playback status: {ex}");
+        }
     }
 
     private void ResetTransportControls()
@@ -263,14 +354,16 @@ internal sealed class WindowsNowPlayingService : IDisposable
             try
             {
                 controls.ButtonPressed -= Controls_ButtonPressed;
+                controls.PlaybackPositionChangeRequested -= Controls_PlaybackPositionChangeRequested;
                 controls.IsEnabled = false;
                 controls.PlaybackStatus = MediaPlaybackStatus.Closed;
                 controls.DisplayUpdater.ClearAll();
                 controls.DisplayUpdater.Update();
                 controls.UpdateTimelineProperties(new SystemMediaTransportControlsTimelineProperties());
             }
-            catch
+            catch (Exception ex)
             {
+                Debug.WriteLine($"Error during transport controls reset: {ex}");
             }
         }
 
@@ -293,6 +386,8 @@ internal sealed class WindowsNowPlayingService : IDisposable
         isPlayEnabled = null;
         isPauseEnabled = null;
         isStopEnabled = null;
+        isNextEnabled = null;
+        isPreviousEnabled = null;
         playbackStatus = null;
         lastTimelinePosition = TimeSpan.MinValue;
         lastTimelineDuration = TimeSpan.MinValue;
@@ -302,17 +397,44 @@ internal sealed class WindowsNowPlayingService : IDisposable
         SystemMediaTransportControls sender,
         SystemMediaTransportControlsButtonPressedEventArgs args)
     {
-        switch (args.Button)
+        try
         {
-            case SystemMediaTransportControlsButton.Play:
-                CommandRequested?.Invoke(this, WindowsNowPlayingCommand.Play);
-                break;
-            case SystemMediaTransportControlsButton.Pause:
-                CommandRequested?.Invoke(this, WindowsNowPlayingCommand.Pause);
-                break;
-            case SystemMediaTransportControlsButton.Stop:
-                CommandRequested?.Invoke(this, WindowsNowPlayingCommand.Stop);
-                break;
+            switch (args.Button)
+            {
+                case SystemMediaTransportControlsButton.Play:
+                    CommandRequested?.Invoke(this, WindowsNowPlayingCommand.Play);
+                    break;
+                case SystemMediaTransportControlsButton.Pause:
+                    CommandRequested?.Invoke(this, WindowsNowPlayingCommand.Pause);
+                    break;
+                case SystemMediaTransportControlsButton.Stop:
+                    CommandRequested?.Invoke(this, WindowsNowPlayingCommand.Stop);
+                    break;
+                case SystemMediaTransportControlsButton.Next:
+                    CommandRequested?.Invoke(this, WindowsNowPlayingCommand.Next);
+                    break;
+                case SystemMediaTransportControlsButton.Previous:
+                    CommandRequested?.Invoke(this, WindowsNowPlayingCommand.Previous);
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error handling button press: {ex}");
+        }
+    }
+
+    private void Controls_PlaybackPositionChangeRequested(
+        SystemMediaTransportControls sender,
+        PlaybackPositionChangeRequestedEventArgs args)
+    {
+        try
+        {
+            SeekRequested?.Invoke(this, args.RequestedPlaybackPosition);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Error handling seek request: {ex}");
         }
     }
 }

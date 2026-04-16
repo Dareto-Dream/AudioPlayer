@@ -1,7 +1,7 @@
 using NAudio.Dsp;
 using NAudio.Wave;
 
-namespace AudioPlayer;
+namespace Spectrallis;
 
 public sealed class VisualizerSampleProvider : ISampleProvider
 {

@@ -1,7 +1,15 @@
 {
   "permissions": {
     "allow": [
-      "Bash(dotnet build:*)"
+      "Bash(dotnet build:*)",
+      "Bash(timeout 15 dotnet run --project Spectrallis)",
+      "Bash(find . -name \"*.cs\" -type f -exec sed -i 's/namespace Spectrallis/namespace Spectrallis/g' {} \\\\;)",
+      "Bash(mv Spectrallis.sln Spectrallis.sln)",
+      "Bash(mv Spectrallis.csproj Spectrallis.csproj)",
+      "Bash(mv Spectrallis.csproj.user Spectrallis.csproj.user)",
+      "Bash(ls -la *.sln *.csproj)",
+      "Bash(ls -la *.csproj *.sln)",
+      "Bash(dotnet run *)"
     ]
   }
 }

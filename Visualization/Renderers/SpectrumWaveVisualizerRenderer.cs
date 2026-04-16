@@ -1,7 +1,7 @@
 using System.Drawing;
 using System.Drawing.Drawing2D;
 
-namespace AudioPlayer;
+namespace Spectrallis;
 
 // Filled spectrum area — smooth curve fitted to the frequency bins, filled with a
 // vertical gradient and outlined with a glowing accent line. A secondary peak-hold

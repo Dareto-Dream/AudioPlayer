@@ -2,7 +2,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Numerics;
 
-namespace AudioPlayer;
+namespace Spectrallis;
 
 internal sealed class Sphere3DVisualizerRenderer : VisualizerRendererBase
 {

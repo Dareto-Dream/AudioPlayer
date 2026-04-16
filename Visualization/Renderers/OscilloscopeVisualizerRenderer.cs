@@ -1,7 +1,7 @@
 using System.Drawing;
 using System.Drawing.Drawing2D;
 
-namespace AudioPlayer;
+namespace Spectrallis;
 
 // Phosphor-glow oscilloscope — renders the waveform as a bright scan line with a
 // CRT-style outer glow and dot markers, all colored from the active theme accent.

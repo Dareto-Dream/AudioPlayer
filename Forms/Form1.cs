@@ -1,7 +1,7 @@
 using System.Drawing;
 using System.IO;
 
-namespace AudioPlayer;
+namespace Spectrallis;
 
 public partial class Form1 : Form
 {

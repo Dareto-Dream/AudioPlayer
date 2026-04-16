@@ -1,6 +1,6 @@
 using System.Drawing;
 
-namespace AudioPlayer;
+namespace Spectrallis;
 
 internal sealed class SettingsDialog : Form
 {
@@ -28,12 +28,12 @@ internal sealed class SettingsDialog : Form
     private readonly ModernComboBox cmbDefaultVisualizer;
     private readonly ModernComboBox cmbPlaybackRate;
     private readonly ModernComboBox cmbCycleDuration;
-    private readonly CheckBox chkShowMoreInfo;
-    private readonly CheckBox chkUseEmbeddedThemes;
-    private readonly CheckBox chkPeakHold;
-    private readonly CheckBox chkAutoCycle;
-    private readonly CheckBox chkAutoPlayOnOpen;
-    private readonly CheckBox chkUseEmbeddedVisualizers;
+    private readonly ModernSwitch chkShowMoreInfo;
+    private readonly ModernSwitch chkUseEmbeddedThemes;
+    private readonly ModernSwitch chkPeakHold;
+    private readonly ModernSwitch chkAutoCycle;
+    private readonly ModernSwitch chkAutoPlayOnOpen;
+    private readonly ModernSwitch chkUseEmbeddedVisualizers;
     private readonly ModernSlider sldSensitivity;
     private readonly ModernSlider sldDefaultVolume;
     private readonly Label lblSensitivityValue;
@@ -132,12 +132,12 @@ internal sealed class SettingsDialog : Form
         cmbPlaybackRate = CreateComboBox();
         cmbCycleDuration = CreateComboBox();
 
-        chkShowMoreInfo = CreateCheckBox("Show details");
-        chkUseEmbeddedThemes = CreateCheckBox("Enabled");
-        chkPeakHold = CreateCheckBox("Enabled");
-        chkAutoCycle = CreateCheckBox("Enabled");
-        chkAutoPlayOnOpen = CreateCheckBox("Enabled");
-        chkUseEmbeddedVisualizers = CreateCheckBox("Enabled");
+        chkShowMoreInfo = CreateSwitch();
+        chkUseEmbeddedThemes = CreateSwitch();
+        chkPeakHold = CreateSwitch();
+        chkAutoCycle = CreateSwitch();
+        chkAutoPlayOnOpen = CreateSwitch();
+        chkUseEmbeddedVisualizers = CreateSwitch();
 
         sldSensitivity = CreateSlider();
         sldDefaultVolume = CreateSlider();
@@ -425,12 +425,12 @@ internal sealed class SettingsDialog : Form
 
         ThemeControlStyler.ApplySliderTheme(sldSensitivity, palette);
         ThemeControlStyler.ApplySliderTheme(sldDefaultVolume, palette);
-        ThemeControlStyler.ApplyCheckBoxTheme(chkShowMoreInfo, palette);
-        ThemeControlStyler.ApplyCheckBoxTheme(chkUseEmbeddedThemes, palette);
-        ThemeControlStyler.ApplyCheckBoxTheme(chkPeakHold, palette);
-        ThemeControlStyler.ApplyCheckBoxTheme(chkAutoCycle, palette);
-        ThemeControlStyler.ApplyCheckBoxTheme(chkAutoPlayOnOpen, palette);
-        ThemeControlStyler.ApplyCheckBoxTheme(chkUseEmbeddedVisualizers, palette);
+        ThemeControlStyler.ApplySwitchTheme(chkShowMoreInfo, palette);
+        ThemeControlStyler.ApplySwitchTheme(chkUseEmbeddedThemes, palette);
+        ThemeControlStyler.ApplySwitchTheme(chkPeakHold, palette);
+        ThemeControlStyler.ApplySwitchTheme(chkAutoCycle, palette);
+        ThemeControlStyler.ApplySwitchTheme(chkAutoPlayOnOpen, palette);
+        ThemeControlStyler.ApplySwitchTheme(chkUseEmbeddedVisualizers, palette);
 
         ThemeControlStyler.ApplyGhostButtonTheme(btnCancel, palette, palette.BorderStrongColor);
         ThemeControlStyler.ApplyPrimaryButtonTheme(btnSave, palette, palette.AccentPrimaryColor);
@@ -501,14 +501,11 @@ internal sealed class SettingsDialog : Form
             Size = new Size(164, 32)
         };
 
-    private static CheckBox CreateCheckBox(string text) =>
+    private static ModernSwitch CreateSwitch() =>
         new()
         {
             Anchor = AnchorStyles.Left,
-            AutoSize = true,
-            Margin = Padding.Empty,
-            Text = text,
-            UseVisualStyleBackColor = false
+            Margin = Padding.Empty
         };
 
     private static Label CreateValueLabel() =>
@@ -610,7 +607,15 @@ internal sealed class SettingsDialog : Form
         labelStack.Controls.Add(lblTitle, 0, 0);
         labelStack.Controls.Add(lblDescription, 0, 1);
 
-        control.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+        // Don't stretch switches - they have a fixed size
+        if (control is not ModernSwitch)
+        {
+            control.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+        }
+        else
+        {
+            control.Anchor = AnchorStyles.Left;
+        }
         control.Margin = Padding.Empty;
 
         row.Controls.Add(labelStack, 0, 0);

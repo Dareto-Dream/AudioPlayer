@@ -1,6 +1,6 @@
 using System.Drawing;
 
-namespace AudioPlayer;
+namespace Spectrallis;
 
 internal sealed class EmbeddedVisualizerHostState(EmbeddedVisualizerStyle style)
 {

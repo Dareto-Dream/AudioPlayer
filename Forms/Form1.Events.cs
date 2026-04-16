@@ -1,4 +1,4 @@
-namespace AudioPlayer;
+namespace Spectrallis;
 
 public partial class Form1
 {
@@ -135,7 +135,7 @@ public partial class Form1
 
     private void WireFileDrop(Control control)
     {
-        if (control is not (ButtonBase or ModernButton or ModernSlider or ComboBox or CheckBox or ListBox))
+        if (control is not (ButtonBase or ModernButton or ModernSlider or ModernSwitch or ComboBox or CheckBox or ListBox))
         {
             control.AllowDrop = true;
             control.DragEnter -= Form1_DragEnter;
@@ -154,6 +154,7 @@ public partial class Form1
         DisposeDisplayedArtwork();
         visualizerAlbumArt?.Dispose();
         nowPlaying.CommandRequested -= NowPlaying_CommandRequested;
+        nowPlaying.SeekRequested -= NowPlaying_SeekRequested;
         nowPlaying.Dispose();
         engine.Dispose();
         base.OnFormClosed(e);
@@ -172,4 +173,27 @@ public partial class Form1
     private void playbackStopToolStripMenuItem_Click(object sender, EventArgs e) => btnStop_Click(sender, e);
 
     private void playbackMuteToolStripMenuItem_Click(object sender, EventArgs e) => btnMute_Click(sender, e);
+
+    private void btnVisualizerPrev_Click(object sender, EventArgs e)
+    {
+        PreviousVisualizerMode();
+        ResetVisualizerCycleDeadline();
+    }
+
+    private void btnVisualizerNext_Click(object sender, EventArgs e)
+    {
+        AdvanceVisualizerMode();
+        ResetVisualizerCycleDeadline();
+    }
+
+    private void chkVisualizerAutoCycle_CheckedChanged(object sender, EventArgs e)
+    {
+        if (isApplyingSettings)
+            return;
+
+        appSettings.EnableVisualizerAutoCycle = chkVisualizerAutoCycle.Checked;
+        SaveAppSettings();
+        ResetVisualizerCycleDeadline();
+        toolTip1.SetToolTip(cmbVisualizerMode, GetVisualizerModeToolTip());
+    }
 }

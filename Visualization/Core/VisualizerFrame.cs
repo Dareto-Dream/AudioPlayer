@@ -1,4 +1,4 @@
-namespace AudioPlayer;
+namespace Spectrallis;
 
 public sealed record VisualizerFrame(float[] Spectrum, float[] Waveform, float PeakLevel, float RmsLevel)
 {

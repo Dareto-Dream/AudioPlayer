@@ -1,7 +1,7 @@
 using System.Drawing;
 using System.Drawing.Drawing2D;
 
-namespace AudioPlayer;
+namespace Spectrallis;
 
 internal sealed class SpectrumBarsVisualizerRenderer(bool mirrored) : VisualizerRendererBase
 {

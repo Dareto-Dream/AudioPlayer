@@ -1,7 +1,7 @@
 using System.Drawing;
 using System.Numerics;
 
-namespace AudioPlayer;
+namespace Spectrallis;
 
 internal readonly record struct VisualizerProjectedPoint(PointF ScreenPoint, float Depth, float Perspective);
 

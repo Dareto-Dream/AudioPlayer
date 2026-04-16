@@ -1,4 +1,4 @@
-namespace AudioPlayer;
+namespace Spectrallis;
 
 internal sealed record VisualizerDefinition(
     VisualizerMode Mode,

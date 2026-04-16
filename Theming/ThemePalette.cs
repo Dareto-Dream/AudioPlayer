@@ -1,6 +1,6 @@
 using System.Drawing;
 
-namespace AudioPlayer;
+namespace Spectrallis;
 
 internal sealed class ThemePalette
 {
@@ -215,5 +215,13 @@ internal static class ThemeControlStyler
         checkBox.BackColor = Color.Transparent;
         checkBox.FlatStyle = FlatStyle.Flat;
         checkBox.ForeColor = palette.TextSecondaryColor;
+    }
+
+    public static void ApplySwitchTheme(ModernSwitch @switch, ThemePalette palette)
+    {
+        @switch.OnColor = palette.AccentPrimaryColor;
+        @switch.OffColor = palette.BorderColor;
+        @switch.ThumbColor = palette.TextPrimaryColor;
+        @switch.BackColor = palette.SurfaceBackColor;
     }
 }
