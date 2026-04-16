@@ -19,13 +19,14 @@ internal abstract class VisualizerRendererBase : IVisualizerRenderer
         graphics.FillRectangle(backgroundBrush, bounds);
 
         using var accentBrush = new PathGradientBrush(
-            [
+            new Point[]
+            {
                 new Point(bounds.Width / 2, bounds.Height / 2),
                 new Point(bounds.Right, bounds.Height / 3),
                 new Point(bounds.Right - 20, bounds.Bottom - 20),
                 new Point(bounds.Left + 20, bounds.Bottom - 10),
                 new Point(bounds.Left, bounds.Height / 3)
-            ])
+            })
         {
             CenterColor = Color.FromArgb((int)(92 * glowStrength), scene.Theme.AmbientGlowColor),
             SurroundColors =

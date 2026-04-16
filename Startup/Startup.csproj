@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <NoWarn>$(NoWarn);NU1701;NU1902</NoWarn>
+    <AssemblyName>Spectralis</AssemblyName>
+    <Product>Spectralis</Product>
+    <Version>1.0.1</Version>
+    <SquirrelWindowsVersion>2.0.1</SquirrelWindowsVersion>
+    <GeneratedApplicationIcon>$(BaseIntermediateOutputPath)generated\icon.ico</GeneratedApplicationIcon>
+    <ApplicationIcon>$(GeneratedApplicationIcon)</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <AssemblyMetadata Include="SquirrelAwareVersion" Value="1" />
+    <ProjectReference Include="..\AudioPlayer.csproj" />
+    <PackageReference Include="Squirrel.Windows" Version="2.0.1" />
+    <Reference Include="Squirrel">
+      <HintPath>$(NuGetPackageRoot)squirrel.windows\$(SquirrelWindowsVersion)\lib\Net45\Squirrel.dll</HintPath>
+    </Reference>
+    <Reference Include="NuGet.Squirrel">
+      <HintPath>$(NuGetPackageRoot)squirrel.windows\$(SquirrelWindowsVersion)\lib\Net45\NuGet.Squirrel.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <Target Name="GenerateApplicationIcon" BeforeTargets="PrepareResources" Inputs="..\Assets\icon.png" Outputs="$(GeneratedApplicationIcon)">
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\..\build\Generate-Icon.ps1&quot; -Source &quot;$(MSBuildProjectDirectory)\..\Assets\icon.png&quot; -Destination &quot;$(MSBuildProjectDirectory)\$(GeneratedApplicationIcon)&quot;" />
+  </Target>
+
+</Project>

@@ -1,21 +1,26 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
-    <GeneratedApplicationIcon>$(BaseIntermediateOutputPath)generated\icon.ico</GeneratedApplicationIcon>
-    <ApplicationIcon>$(GeneratedApplicationIcon)</ApplicationIcon>
+    <NoWarn>$(NoWarn);CA1416</NoWarn>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Startup\**\*.cs" />
     <PackageReference Include="NAudio" Version="2.3.0" />
     <PackageReference Include="NAudio.Vorbis" Version="1.5.0" />
-    <PackageReference Include="squirrel.windows" Version="2.0.1" />
     <PackageReference Include="TagLibSharp" Version="2.3.0" />
     <PackageReference Include="Wasmtime" Version="34.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Startup\DefaultAppRegistrar.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -50,9 +55,5 @@
       <SubType>Form</SubType>
     </Compile>
   </ItemGroup>
-
-  <Target Name="GenerateApplicationIcon" BeforeTargets="PrepareResources" Inputs="Assets\icon.png" Outputs="$(GeneratedApplicationIcon)">
-    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\build\Generate-Icon.ps1&quot; -Source &quot;$(MSBuildProjectDirectory)\Assets\icon.png&quot; -Destination &quot;$(MSBuildProjectDirectory)\$(GeneratedApplicationIcon)&quot;" />
-  </Target>
 
 </Project>
