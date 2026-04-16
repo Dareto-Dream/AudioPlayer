@@ -1,0 +1,1064 @@
+(module
+  (import "delta" "set_color" (func $set_color (param i32 i32 i32 i32)))
+  (import "delta" "set_thickness" (func $set_thickness (param f32)))
+  (import "delta" "line" (func $line (param f32 f32 f32 f32)))
+  (import "delta" "rect" (func $rect (param f32 f32 f32 f32 i32)))
+  (import "delta" "circle" (func $circle (param f32 f32 f32 i32)))
+  (import "delta" "get_waveform" (func $get_waveform (param i32) (result f32)))
+  (import "delta" "get_spectrum" (func $get_spectrum (param i32) (result f32)))
+
+  (memory 1)
+  (data (i32.const 0) "\50\07\35\41\7c\c5\37\41\a8\83\3a\41\d4\41\3d\41\00\00\40\41\b0\f8\4a\41\db\b6\4d\41\07\75\50\41\33\33\53\41\5f\f1\55\41\0f\ea\60\41\3b\a8\63\41\66\66\66\41\7c\c5\67\41\be\e2\6b\41\6e\db\76\41\9a\99\79\41\c5\57\7c\41\0f\ea\80\41\66\66\86\41\7c\c5\87\41\92\24\89\41\a8\83\8a\41\be\e2\8b\41\16\5f\91\41\2c\be\92\41\42\1d\94\41\58\7c\95\41\6e\db\96\41\c5\57\9c\41\db\b6\9d\41\f1\15\9f\41\7c\c5\9f\41\1d\d4\a1\41\75\50\a7\41\8b\af\a8\41\a1\0e\aa\41\cd\cc\ac\41\f9\8a\af\41\0f\ea\b0\41\25\49\b2\41\b0\f8\b2\41\3b\a8\b3\41\00\00\b4\41\c5\57\b4\41\8b\af\b4\41\50\07\b5\41\66\66\b6\41\7c\c5\b7\41\a8\83\ba\41\be\e2\bb\41\d4\41\bd\41\ea\a0\be\41\00\00\c0\41\16\5f\c1\41\2c\be\c2\41\42\1d\c4\41\58\7c\c5\41\84\3a\c8\41\49\92\c8\41\0f\ea\c8\41\d4\41\c9\41\b0\f8\ca\41\c5\57\cc\41\50\07\cd\41\db\b6\cd\41\f1\15\cf\41\07\75\d0\41\1d\d4\d1\41\33\33\d3\41\49\92\d4\41\5f\f1\d5\41\75\50\d7\41\8b\af\d8\41\a1\0e\da\41\b7\6d\db\41\e3\2b\de\41\f9\8a\df\41\84\3a\e0\41\0f\ea\e0\41\25\49\e2\41\3b\a8\e3\41\66\66\e6\41\7c\c5\e7\41\92\24\e9\41\a8\83\ea\41\be\e2\eb\41\d4\41\ed\41\ea\a0\ee\41\00\00\f0\41\16\5f\f1\41\42\1d\f4\41\07\75\f4\41\cd\cc\f4\41\92\24\f5\41\6e\db\f6\41\0f\ea\f8\41\9a\99\f9\41\b0\f8\fa\41\c5\57\fc\41\db\b6\fd\41\f1\15\ff\41\84\3a\00\42\0f\ea\00\42\25\49\02\42\b0\f8\02\42\3b\a8\03\42\3b\a8\03\42\50\07\05\42\db\b6\05\42\66\66\06\42\7c\c5\07\42\07\75\08\42\cd\cc\08\42\92\24\09\42\a8\83\0a\42\33\33\0b\42\be\e2\0b\42\49\92\0c\42\d4\41\0d\42\ea\a0\0e\42\75\50\0f\42\00\00\10\42\8b\af\10\42\16\5f\11\42\a1\0e\12\42\2c\be\12\42\b7\6d\13\42\42\1d\14\42\cd\cc\14\42\58\7c\15\42\e3\2b\16\42\6e\db\16\42\f9\8a\17\42\84\3a\18\42\0f\ea\18\42\9a\99\19\42\9a\99\19\42\b0\f8\1a\42\3b\a8\1b\42\c5\57\1c\42\db\b6\1d\42\66\66\1e\42\2c\be\1e\42\f1\15\1f\42\07\75\20\42\92\24\21\42\1d\d4\21\42\a8\83\22\42\33\33\23\42\49\92\24\42\d4\41\25\42\5f\f1\25\42\ea\a0\26\42\75\50\27\42\00\00\28\42\8b\af\28\42\16\5f\29\42\a1\0e\2a\42\2c\be\2a\42\b7\6d\2b\42\42\1d\2c\42\cd\cc\2c\42\58\7c\2d\42\e3\2b\2e\42\6e\db\2e\42\f9\8a\2f\42\84\3a\30\42\0f\ea\30\42\9a\99\31\42\25\49\32\42\b0\f8\32\42\3b\a8\33\42\c5\57\34\42\db\b6\35\42\66\66\36\42\f1\15\37\42\b7\6d\37\42\7c\c5\37\42\07\75\38\42\92\24\39\42\1d\d4\39\42\a8\83\3a\42\be\e2\3b\42\49\92\3c\42\d4\41\3d\42\5f\f1\3d\42\ea\a0\3e\42\75\50\3f\42\00\00\40\42\8b\af\40\42\16\5f\41\42\a1\0e\42\42\2c\be\42\42\42\1d\44\42\58\7c\45\42\e3\2b\46\42\6e\db\46\42\f9\8a\47\42\84\3a\48\42\0f\ea\48\42\9a\99\49\42\25\49\4a\42\3b\a8\4b\42\c5\57\4c\42\50\07\4d\42\16\5f\4d\42\db\b6\4d\42\66\66\4e\42\f1\15\4f\42\7c\c5\4f\42\07\75\50\42\1d\d4\51\42\a8\83\52\42\33\33\53\42\be\e2\53\42\49\92\54\42\d4\41\55\42\5f\f1\55\42\ea\a0\56\42\75\50\57\42\00\00\58\42\8b\af\58\42\a1\0e\5a\42\b7\6d\5b\42\cd\cc\5c\42\e3\2b\5e\42\33\33\5f\42\84\3a\60\42\0f\ea\60\42\25\49\62\42\3b\a8\63\42\8b\af\64\42\db\b6\65\42\66\66\66\42\7c\c5\67\42\92\24\69\42\e3\2b\6a\42\33\33\6b\42\be\e2\6b\42\d4\41\6d\42\ea\a0\6e\42\3b\a8\6f\42\8b\af\70\42\16\5f\71\42\16\5f\71\42\a1\0e\72\42\66\66\72\42\2c\be\72\42\2c\be\72\42\b7\6d\73\42\7c\c5\73\42\42\1d\74\42\07\75\74\42\cd\cc\74\42\92\24\75\42\58\7c\75\42\1d\d4\75\42\e3\2b\76\42\6e\db\76\42\6e\db\76\42\f9\8a\77\42\be\e2\77\42\84\3a\78\42\84\3a\78\42\0f\ea\78\42\d4\41\79\42\9a\99\79\42\5f\f1\79\42\25\49\7a\42\ea\a0\7a\42\b0\f8\7a\42\75\50\7b\42\3b\a8\7b\42\c5\57\7c\42\c5\57\7c\42\50\07\7d\42\16\5f\7d\42\db\b6\7d\42\db\b6\7d\42\66\66\7e\42\2c\be\7e\42\f1\15\7f\42\b7\6d\7f\42\7c\c5\7f\42\a1\0e\80\42\84\3a\80\42\66\66\80\42\49\92\80\42\0f\ea\80\42\0f\ea\80\42\d4\41\81\42\b7\6d\81\42\9a\99\81\42\9a\99\81\42\5f\f1\81\42\42\1d\82\42\25\49\82\42\07\75\82\42\ea\a0\82\42\cd\cc\82\42\b0\f8\82\42\92\24\83\42\75\50\83\42\3b\a8\83\42\00\00\84\42\c5\57\84\42\8b\af\84\42\50\07\85\42\16\5f\85\42\f9\8a\85\42\be\e2\85\42\a1\0e\86\42\66\66\86\42\66\66\86\42\2c\be\86\42\f1\15\87\42\f1\15\87\42\b7\6d\87\42\7c\c5\87\42\7c\c5\87\42\42\1d\88\42\25\49\88\42\25\49\88\42\ea\a0\88\42\cd\cc\88\42\cd\cc\88\42\92\24\89\42\58\7c\89\42\1d\d4\89\42\e3\2b\8a\42\a8\83\8a\42\6e\db\8a\42\50\07\8b\42\16\5f\8b\42\f9\8a\8b\42\be\e2\8b\42\be\e2\8b\42\84\3a\8c\42\49\92\8c\42\49\92\8c\42\0f\ea\8c\42\d4\41\8d\42\d4\41\8d\42\9a\99\8d\42\7c\c5\8d\42\7c\c5\8d\42\42\1d\8e\42\25\49\8e\42\25\49\8e\42\ea\a0\8e\42\b0\f8\8e\42\92\24\8f\42\75\50\8f\42\3b\a8\8f\42\1d\d4\8f\42\00\00\90\42\c5\57\90\42\a8\83\90\42\6e\db\90\42\50\07\91\42\16\5f\91\42\db\b6\91\42\be\e2\91\42\a1\0e\92\42\66\66\92\42\49\92\92\42\2c\be\92\42\f1\15\93\42\d4\41\93\42\d4\41\93\42\9a\99\93\42\7c\c5\93\42\7c\c5\93\42\42\1d\94\42\07\75\94\42\ea\a0\94\42\cd\cc\94\42\92\24\95\42\58\7c\95\42\1d\d4\95\42\00\00\96\42\e3\2b\96\42\a8\83\96\42\6e\db\96\42\6e\db\96\42\84\ba\9d\42\66\66\9e\42\0f\6a\9e\42\f1\15\9f\42\9a\19\9f\42\7c\c5\9f\42\42\1d\a0\42\07\75\a0\42\cd\cc\a0\42\92\24\a1\42\a8\83\a2\42\6e\db\a2\42\33\33\a3\42\f9\8a\a3\42\be\e2\a3\42\d4\41\a5\42\9a\99\a5\42\5f\f1\a5\42\42\1d\a6\42\ea\a0\a6\42\00\00\a8\42\c5\57\a8\42\8b\af\a8\42\16\5f\a9\42\2c\be\aa\42\2c\be\aa\42\49\12\ab\42\0f\6a\ab\42\d4\c1\ab\42\7c\c5\ab\42\42\1d\ac\42\42\1d\ac\42\b0\78\ad\42\58\7c\ad\42\75\d0\ad\42\1d\d4\ad\42\3b\28\ae\42\00\80\ae\42\a8\83\ae\42\c5\d7\ae\42\6e\db\ae\42\db\36\b0\42\84\3a\b0\42\a1\8e\b0\42\49\92\b0\42\66\e6\b0\42\49\12\b1\42\f1\15\b1\42\f1\95\b1\42\9a\99\b1\42\b0\f8\b2\42\b0\f8\b2\42\75\50\b3\42\75\50\b3\42\3b\a8\b3\42\6e\5b\b4\42\50\07\b5\42\50\07\b5\42\50\07\b5\42\db\b6\b5\42\66\66\b6\42\0f\ea\b6\42\b7\6d\b7\42\7c\c5\b7\42\07\75\b8\42\92\24\b9\42\3b\a8\b9\42\e3\2b\ba\42\a8\83\ba\42\33\33\bb\42\be\e2\bb\42\66\66\bc\42\0f\ea\bc\42\d4\41\bd\42\5f\f1\bd\42\ea\a0\be\42\92\24\bf\42\3b\a8\bf\42\00\00\c0\42\00\00\c0\42\c5\57\c0\42\a8\83\c0\42\8b\af\c0\42\8b\af\c0\42\50\07\c1\42\33\33\c1\42\16\5f\c1\42\f9\8a\c1\42\db\b6\c1\42\be\e2\c1\42\a1\0e\c2\42\84\3a\c2\42\66\66\c2\42\2c\be\c2\42\2c\be\c2\42\f1\15\c3\42\d4\41\c3\42\b7\6d\c3\42\b7\6d\c3\42\7c\c5\c3\42\5f\f1\c3\42\42\1d\c4\42\25\49\c4\42\07\75\c4\42\ea\a0\c4\42\cd\cc\c4\42\b0\f8\c4\42\92\24\c5\42\92\24\c5\42\58\7c\c5\42\58\7c\c5\42\58\7c\c5\42\00\80\c5\42\1d\d4\c5\42\00\00\c6\42\00\00\c6\42\e3\2b\c6\42\e3\2b\c6\42\e3\2b\c6\42\e3\2b\c6\42\a8\83\c6\42\a8\83\c6\42\33\b3\c6\42\6e\db\c6\42\6e\db\c6\42\50\07\c7\42\50\07\c7\42\33\33\c7\42\33\33\c7\42\16\5f\c7\42\f9\8a\c7\42\f9\8a\c7\42\db\b6\c7\42\db\b6\c7\42\c5\d7\c7\42\be\e2\c7\42\84\3a\c8\42\2c\3e\c8\42\2c\3e\c8\42\49\92\c8\42\49\92\c8\42\2c\be\c8\42\2c\be\c8\42\0f\ea\c8\42\b7\ed\c8\42\5f\f1\c8\42\db\36\c9\42\d4\41\c9\42\b7\6d\c9\42\9a\99\c9\42\9a\99\c9\42\84\ba\c9\42\7c\c5\c9\42\5f\f1\c9\42\42\1d\ca\42\42\1d\ca\42\25\49\ca\42\25\49\ca\42\07\75\ca\42\07\75\ca\42\ea\a0\ca\42\ea\a0\ca\42\ea\a0\ca\42\b0\f8\ca\42\75\50\cb\42\3b\a8\cb\42\00\00\cc\42\c5\57\cc\42\8b\af\cc\42\6e\db\cc\42\33\33\cd\42\16\5f\cd\42\db\b6\cd\42\db\b6\cd\42\a1\0e\ce\42\66\66\ce\42\66\66\ce\42\2c\be\ce\42\f1\15\cf\42\f1\15\cf\42\b7\6d\cf\42\9a\99\cf\42\9a\99\cf\42\5f\f1\cf\42\42\1d\d0\42\42\1d\d0\42\07\75\d0\42\cd\cc\d0\42\92\24\d1\42\58\7c\d1\42\1d\d4\d1\42\e3\2b\d2\42\c5\57\d2\42\8b\af\d2\42\6e\db\d2\42\33\33\d3\42\33\33\d3\42\f9\8a\d3\42\be\e2\d3\42\be\e2\d3\42\84\3a\d4\42\49\92\d4\42\49\92\d4\42\0f\ea\d4\42\f1\15\d5\42\f1\15\d5\42\b7\6d\d5\42\9a\99\d5\42\9a\99\d5\42\5f\f1\d5\42\25\49\d6\42\07\75\d6\42\ea\a0\d6\42\b0\f8\d6\42\92\24\d7\42\75\50\d7\42\3b\a8\d7\42\1d\d4\d7\42\e3\2b\d8\42\c5\57\d8\42\8b\af\d8\42\50\07\d9\42\33\33\d9\42\16\5f\d9\42\db\b6\d9\42\be\e2\d9\42\a1\0e\da\42\66\66\da\42\49\92\da\42\49\92\da\42\0f\ea\da\42\f1\15\db\42\f1\15\db\42\0f\6a\db\42\7c\c5\db\42\7c\c5\db\42\b7\ed\db\42\5f\f1\db\42\f1\15\dc\42\42\1d\dc\42\b7\6d\dc\42\07\75\dc\42\9a\99\dc\42\25\c9\dc\42\cd\cc\dc\42\ea\20\dd\42\92\24\dd\42\75\50\dd\42\75\50\dd\42\3b\a8\dd\42\3b\a8\dd\42\75\d0\dd\42\1d\d4\dd\42\3b\28\de\42\00\80\de\42\a8\83\de\42\e3\ab\de\42\8b\af\de\42\1d\d4\de\42\6e\db\de\42\33\33\df\42\16\5f\df\42\16\5f\df\42\50\87\df\42\f9\8a\df\42\6e\db\df\42\be\e2\df\42\00\00\e0\42\a1\0e\e0\42\a1\0e\e0\42\be\62\e0\42\66\66\e0\42\49\92\e0\42\49\92\e0\42\f1\95\e0\42\0f\ea\e0\42")
+  (data (i32.const 2648) "\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\df\d5\af\3e\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\20\f3\83\3e\00\00\00\00\00\00\00\00\93\18\84\3e\c5\20\30\3e\93\18\84\3e\00\00\00\00\00\00\00\00\20\f3\83\3e\20\f3\83\3e\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\20\f3\83\3e\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\20\f3\83\3e\00\00\00\00\00\00\00\00\93\18\84\3e\c5\20\30\3e\93\18\84\3e\00\00\00\00\00\00\00\00\20\f3\83\3e\20\f3\83\3e\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\93\18\84\3e\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\93\18\84\3e\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\20\f3\83\3e\00\00\00\00\00\00\00\00\ac\1c\1a\3f\00\00\00\00\00\00\00\00\00\00\00\00\20\f3\83\3e\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\20\f3\83\3e\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\ac\1c\1a\3f\00\00\00\00\00\00\00\00\20\f3\83\3e\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\20\f3\83\3e\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\ac\1c\1a\3f\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\93\18\84\3e\93\18\84\3e\ac\1c\1a\3f\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\93\18\84\3e\93\18\84\3e\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\ac\1c\1a\3f\ac\1c\1a\3f\b0\f8\8a\3e\3b\a8\83\3e\b0\f8\8a\3e\9a\99\19\3f\5f\f1\15\3f\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\3b\a8\83\3e\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\3b\a8\83\3e\00\00\00\00\00\00\00\00\3b\a8\83\3e\f9\8a\2f\3e\3b\a8\83\3e\00\00\00\00\00\00\00\00\3b\a8\83\3e\3b\a8\83\3e\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\8b\af\78\3e\3b\a8\83\3e\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\8b\af\78\3e\3b\a8\83\3e\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\16\5f\71\3e\9a\99\19\3e\f9\8a\2f\3e\75\50\87\3e\3b\a8\83\3e\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\8b\af\78\3e\a1\0e\6a\3e\00\00\00\00\49\92\a4\3f\1d\d4\a1\3f\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\a1\0e\ea\3b\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\49\92\64\3f")
+  (data (i32.const 5296) "\02\00\00\01\03\00\02\03\01\00\01\02\00\01\02\03\02\00\01\06\04\04\05\07\04\06\07\05\04\05\06\04\05\06\07\06\04\05\02\02\02\00\01\02\03\01\00\01\02\01\00\02\03\03\02\00\01\02\03\02\01\00\02\03\01\02\03\02\02\00\02\03\01\00\02\06\06\04\05\07\06\04\05\06\07\06\06\04\05\07\06\07\06\05\04\06\07\06\04\05\05\05\05\04\05\06\07\00\01\01\03\02\00\01\02\03\03\02\00\02\01\00\00\01\03\02\02\01\00\02\01\03\02\00\01\02\04\03\05\05\07\06\04\05\06\07\07\06\04\06\05\04\04\05\07\06\06\05\04\06\05\07\06\04\05\06\07\02\01\00\02\03\02\00\01\02\03\02\00\01\02\03\02\01\03\02\00\02\01\00\03\00\03\02\01\00\06\05\04\06\07\06\04\05\06\07\06\04\05\06\07\06\05\07\06\04\06\05\04\07\04\07\06\05\04\04\05\05\05\06\06\07\07\07\00\00\01\01\01\02\02\03\03\03\04\05\07\06\04\05\06\07\06\04\05\07\06\05\04\06\07\04\05\06\07\04\07\05\07\04\06\05\06\04\00\01\03\02\00\01\02\03\02\00\01\03\02\01\00\02\03\00\01\02\03\00\03\01\03\00\02\01\02\00\05\07\06\04\06\05\07\06\05\04\06\05\06\07\04\05\07\06\04\05\06\04\05\01\03\02\00\02\01\03\02\01\00\02\01\02\03\00\01\03\02\00\01\02\00\01\04\05\06\07\06\04\06\05\07\06\05\04\07\06\05\04\05\07\05\06\07\05\06\07\03\02\00\01\02\03\02\00\01\02\01\03\0c\05\0d\06\0e\07\04\04\05\06\07\05\04\06\07\06\05\04\05\06\07\05\04\06\0f\07\0c\0c\0d\05\0e\06\0f\07\0d\05\0c\0e\06\0f\07\0f\06\0e\05\0d\0e\05\0f\06\0f\07\0d\05\0c\0c\04\06\0e\04\05\05\05\06\06\07\07\07\00\00\01\01\01\02\02\03\03\03\06\07\04\05\06\07\05\04\05\07\06\04\05\06\07\04\05\07\06\04\05\07\04\05\07\04\05\07\06\04\05\06\07\0f\0e\0c\0d\05\0e\0f\06\07\0d\05\0c\05\0d\07\0f\0e\06\0c\05\0d\0e\06\0f\07\05\0d\0c\07\0f\0e\06\05\0d\0c\0f\07\0c\05\0d\0f\07\0c\05\0d\07\0f\06\0e\05\0d\0c\05\07\06\04\06\05\07\06\05\04\06\05\06\07\04\05\07\06\04\05\06\04\05\01\03\02\00\02\01\03\02\01\00\02\01\02\03\00\01\03\02\00\01\02\00\01\04\05\06\07\06\04\06\05\07\06\05\04\07\06\05\04\05\07\05\06\07\05\06\07\0c\0d\05\0e\06\0f\07\0e\06\0c\0e\06\0d\05\0f\07\0e\06\0d\05\0c\0f\07\0e\06\0d\05\0c\0d\05\0f\07\0d\05\0f\06\07\0d\05\06\07\0f\0c")
+  (data (i32.const 5960) "\00\00\00\00\f9\8a\af\40\3b\a8\03\41\9a\99\19\41\f9\8a\2f\41\3b\a8\83\41\f9\8a\af\41\b7\6d\db\41\ea\a0\03\42\16\5f\5b\42\66\66\66\42\16\5f\71\42\c5\57\7c\42\3b\a8\83\42\92\24\89\42\ea\a0\8e\42\42\1d\94\42\16\df\96\42")
+  (data (i32.const 6032) "\00\01\00\01\00\01\00\01\ff\01\00\01\00\01\00\01\00\ff")
+
+  (func $lane_x (param $side i32) (param $lane i32) (result f32)
+    local.get $side
+    if (result f32)
+      f32.const 0.58
+      local.get $lane
+      f32.convert_i32_s
+      f32.const 0.07
+      f32.mul
+      f32.add
+    else
+      f32.const 0.14
+      local.get $lane
+      f32.convert_i32_s
+      f32.const 0.07
+      f32.mul
+      f32.add
+    end
+  )
+
+  (func $note_y (param $delta_seconds f32) (result f32)
+    f32.const 0.18
+    local.get $delta_seconds
+    f32.const 0.72
+    f32.mul
+    f32.const 1.1
+    f32.div
+    f32.add
+  )
+
+  (func $hold_height (param $start_y f32) (param $end_y f32) (result f32)
+    local.get $end_y
+    local.get $start_y
+    f32.sub
+  )
+
+  (func $fract (param $value f32) (result f32)
+    local.get $value
+    local.get $value
+    f32.floor
+    f32.sub
+  )
+
+  (func $tri (param $value f32) (result f32)
+    f32.const 1
+    local.get $value
+    call $fract
+    f32.const 0.5
+    f32.sub
+    f32.abs
+    f32.const 4
+    f32.mul
+    f32.sub
+  )
+
+  (func $pulse (param $value f32) (result f32)
+    local.get $value
+    call $tri
+    f32.const 1
+    f32.add
+    f32.const 0.5
+    f32.mul
+  )
+
+  (func $render (export "render") (param $time f32) (param $peak f32) (param $rms f32)
+    (local $i i32)
+    (local $focus i32)
+    (local $left_alpha i32)
+    (local $right_alpha i32)
+    (local $progress f32)
+    (local $pulse f32)
+    (local $lane i32)
+    (local $side i32)
+    (local $special i32)
+    (local $x f32)
+    (local $y f32)
+    (local $tail_y f32)
+    (local $delta_seconds f32)
+    (local $hold_seconds f32)
+    (local $meta i32)
+    (local $wave_y f32)
+    (local $wave_prev_x f32)
+    (local $wave_prev_y f32)
+    (local $wave_x f32)
+    (local $wave_sample f32)
+
+    i32.const -1
+    local.set $focus
+    i32.const 0
+    local.set $i
+    block $focus_done
+      loop $focus_loop
+        local.get $i
+        i32.const 18
+        i32.ge_s
+        br_if $focus_done
+
+        local.get $time
+        i32.const 5960
+        local.get $i
+        i32.const 4
+        i32.mul
+        i32.add
+        f32.load
+        f32.lt
+        br_if $focus_done
+
+        i32.const 6032
+        local.get $i
+        i32.add
+        i32.load8_s
+        local.set $focus
+
+        local.get $i
+        i32.const 1
+        i32.add
+        local.set $i
+        br $focus_loop
+      end
+    end
+
+    local.get $focus
+    i32.const 0
+    i32.eq
+    if
+      i32.const 78
+      local.set $left_alpha
+      i32.const 28
+      local.set $right_alpha
+    else
+      local.get $focus
+      i32.const 1
+      i32.eq
+      if
+        i32.const 28
+        local.set $left_alpha
+        i32.const 78
+        local.set $right_alpha
+      else
+        i32.const 52
+        local.set $left_alpha
+        i32.const 52
+        local.set $right_alpha
+      end
+    end
+
+    local.get $time
+    f32.const 113.350000
+    f32.div
+    f32.const 0
+    f32.max
+    f32.const 1
+    f32.min
+    local.set $progress
+
+    local.get $time
+    f32.const 1.35
+    f32.mul
+    call $pulse
+    local.set $pulse
+
+    i32.const 4
+    i32.const 6
+    i32.const 10
+    i32.const 255
+    call $set_color
+    f32.const 0
+    f32.const 0
+    f32.const 1
+    f32.const 1
+    i32.const 1
+    call $rect
+
+    i32.const 8
+    i32.const 12
+    i32.const 18
+    i32.const 220
+    call $set_color
+    f32.const 0.025
+    f32.const 0.045
+    f32.const 0.95
+    f32.const 0.9
+    i32.const 1
+    call $rect
+
+    i32.const 10
+    i32.const 15
+    i32.const 24
+    i32.const 255
+    call $set_color
+    f32.const 0.04
+    f32.const 0.06
+    f32.const 0.92
+    f32.const 0.86
+    i32.const 1
+    call $rect
+
+    i32.const 18
+    i32.const 25
+    i32.const 36
+    i32.const 188
+    call $set_color
+    f32.const 0.04
+    f32.const 0.06
+    f32.const 0.92
+    f32.const 0.12
+    i32.const 1
+    call $rect
+
+    i32.const 14
+    i32.const 18
+    i32.const 28
+    i32.const 168
+    call $set_color
+    f32.const 0.04
+    f32.const 0.84
+    f32.const 0.92
+    f32.const 0.08
+    i32.const 1
+    call $rect
+
+    i32.const 26
+    i32.const 42
+    i32.const 42
+    local.get $left_alpha
+    i32.const 36
+    i32.add
+    call $set_color
+    f32.const 0.07
+    f32.const 0.11
+    f32.const 0.36
+    f32.const 0.69
+    i32.const 1
+    call $rect
+
+    i32.const 42
+    i32.const 28
+    i32.const 50
+    local.get $right_alpha
+    i32.const 36
+    i32.add
+    call $set_color
+    f32.const 0.57
+    f32.const 0.11
+    f32.const 0.36
+    f32.const 0.69
+    i32.const 1
+    call $rect
+
+    i32.const 122
+    i32.const 255
+    i32.const 228
+    local.get $left_alpha
+    i32.const 118
+    i32.add
+    call $set_color
+    f32.const 1.6
+    call $set_thickness
+    f32.const 0.07
+    f32.const 0.11
+    f32.const 0.36
+    f32.const 0.69
+    i32.const 0
+    call $rect
+
+    i32.const 255
+    i32.const 170
+    i32.const 242
+    local.get $right_alpha
+    i32.const 118
+    i32.add
+    call $set_color
+    f32.const 1.6
+    call $set_thickness
+    f32.const 0.57
+    f32.const 0.11
+    f32.const 0.36
+    f32.const 0.69
+    i32.const 0
+    call $rect
+
+    i32.const 122
+    i32.const 255
+    i32.const 228
+    local.get $left_alpha
+    i32.const 78
+    i32.add
+    call $set_color
+    f32.const 0.09
+    f32.const 0.09
+    f32.const 0.22
+    f32.const 0.03
+    i32.const 1
+    call $rect
+
+    i32.const 255
+    i32.const 170
+    i32.const 242
+    local.get $right_alpha
+    i32.const 78
+    i32.add
+    call $set_color
+    f32.const 0.69
+    f32.const 0.09
+    f32.const 0.22
+    f32.const 0.03
+    i32.const 1
+    call $rect
+
+    i32.const 244
+    i32.const 190
+    i32.const 118
+    i32.const 76
+    call $set_color
+    f32.const 0.487
+    f32.const 0.11
+    f32.const 0.026
+    f32.const 0.69
+    i32.const 1
+    call $rect
+
+    i32.const 255
+    i32.const 222
+    i32.const 170
+    i32.const 112
+    call $set_color
+    f32.const 0.5
+    f32.const 0.5
+    f32.const 0.024
+    local.get $pulse
+    f32.const 0.008
+    f32.mul
+    f32.add
+    i32.const 0
+    call $circle
+
+    i32.const 46
+    i32.const 90
+    i32.const 88
+    i32.const 34
+    call $set_color
+    i32.const 0
+    local.set $i
+    block $grid_done
+      loop $grid_loop
+        local.get $i
+        i32.const 6
+        i32.ge_s
+        br_if $grid_done
+        f32.const 0.09
+        local.get $i
+        f32.convert_i32_s
+        f32.const 0.14
+        f32.mul
+        f32.add
+        local.set $wave_y
+        f32.const 0.08
+        local.get $wave_y
+        f32.const 0.92
+        local.get $wave_y
+        call $line
+        local.get $i
+        i32.const 1
+        i32.add
+        local.set $i
+        br $grid_loop
+      end
+    end
+
+    i32.const 122
+    i32.const 255
+    i32.const 224
+    i32.const 90
+    call $set_color
+    f32.const 2.2
+    call $set_thickness
+    f32.const 0.09
+    local.set $wave_prev_x
+    f32.const 0.5
+    i32.const 0
+    call $get_waveform
+    local.get $rms
+    f32.const 0.07
+    f32.mul
+    f32.mul
+    f32.add
+    local.set $wave_prev_y
+    i32.const 1
+    local.set $i
+    block $wave_done
+      loop $wave_loop
+        local.get $i
+        i32.const 24
+        i32.ge_s
+        br_if $wave_done
+
+        f32.const 0.09
+        local.get $i
+        f32.convert_i32_s
+        f32.const 0.034
+        f32.mul
+        f32.add
+        local.set $wave_x
+
+        local.get $i
+        i32.const 4
+        i32.mul
+        call $get_waveform
+        local.set $wave_sample
+        f32.const 0.5
+        local.get $wave_sample
+        local.get $rms
+        f32.const 0.07
+        f32.mul
+        f32.mul
+        f32.add
+        local.set $wave_y
+
+        local.get $wave_prev_x
+        local.get $wave_prev_y
+        local.get $wave_x
+        local.get $wave_y
+        call $line
+
+        local.get $wave_x
+        local.set $wave_prev_x
+        local.get $wave_y
+        local.set $wave_prev_y
+        local.get $i
+        i32.const 1
+        i32.add
+        local.set $i
+        br $wave_loop
+      end
+    end
+
+    i32.const 214
+    i32.const 246
+    i32.const 237
+    i32.const 126
+    call $set_color
+    f32.const 0.5
+    f32.const 0.5
+    f32.const 0.008
+    local.get $pulse
+    f32.const 0.004
+    f32.mul
+    f32.add
+    i32.const 1
+    call $circle
+
+    i32.const 255
+    i32.const 176
+    i32.const 216
+    i32.const 80
+    call $set_color
+    f32.const 0.11
+    f32.const 0.89
+    f32.const 0.012
+    local.get $peak
+    f32.const 0.01
+    f32.mul
+    f32.add
+    i32.const 0
+    call $circle
+    f32.const 0.89
+    f32.const 0.89
+    f32.const 0.012
+    local.get $peak
+    f32.const 0.01
+    f32.mul
+    f32.add
+    i32.const 0
+    call $circle
+
+    i32.const 0
+    local.set $i
+    block $lane_done
+      loop $lane_loop
+        local.get $i
+        i32.const 8
+        i32.ge_s
+        br_if $lane_done
+
+        local.get $i
+        i32.const 4
+        i32.lt_s
+        local.get $i
+        i32.const 3
+        i32.and
+        call $lane_x
+        local.set $x
+
+        local.get $i
+        i32.const 4
+        i32.lt_s
+        if
+          i32.const 36
+          i32.const 72
+          i32.const 74
+          i32.const 78
+          call $set_color
+        else
+          i32.const 58
+          i32.const 42
+          i32.const 70
+          i32.const 78
+          call $set_color
+        end
+        local.get $x
+        f32.const 0.027
+        f32.sub
+        f32.const 0.12
+        f32.const 0.054
+        f32.const 0.68
+        i32.const 1
+        call $rect
+
+        local.get $i
+        i32.const 4
+        i32.lt_s
+        if
+          i32.const 120
+          i32.const 255
+          i32.const 228
+          i32.const 86
+          call $set_color
+        else
+          i32.const 255
+          i32.const 170
+          i32.const 244
+          i32.const 86
+          call $set_color
+        end
+        f32.const 1.2
+        call $set_thickness
+        local.get $x
+        f32.const 0.14
+        local.get $x
+        f32.const 0.8
+        call $line
+
+        local.get $i
+        i32.const 4
+        i32.lt_s
+        if
+          i32.const 88
+          i32.const 255
+          i32.const 234
+          i32.const 70
+          call $set_color
+        else
+          i32.const 255
+          i32.const 184
+          i32.const 246
+          i32.const 70
+          call $set_color
+        end
+        local.get $x
+        f32.const 0.017
+        f32.sub
+        f32.const 0.125
+        f32.const 0.034
+        f32.const 0.012
+        i32.const 1
+        call $rect
+
+        local.get $i
+        i32.const 4
+        i32.lt_s
+        if
+          i32.const 78
+          i32.const 255
+          i32.const 230
+          i32.const 86
+          call $set_color
+        else
+          i32.const 255
+          i32.const 188
+          i32.const 250
+          i32.const 86
+          call $set_color
+        end
+        local.get $x
+        f32.const 0.18
+        f32.const 0.024
+        local.get $pulse
+        f32.const 0.006
+        f32.mul
+        f32.add
+        i32.const 1
+        call $circle
+
+        local.get $i
+        i32.const 4
+        i32.lt_s
+        if
+          i32.const 126
+          i32.const 255
+          i32.const 230
+          i32.const 150
+          call $set_color
+        else
+          i32.const 255
+          i32.const 188
+          i32.const 250
+          i32.const 150
+          call $set_color
+        end
+        f32.const 1.7
+        call $set_thickness
+        local.get $x
+        f32.const 0.024
+        f32.sub
+        f32.const 0.152
+        f32.const 0.048
+        f32.const 0.056
+        i32.const 0
+        call $rect
+
+        i32.const 16
+        i32.const 22
+        i32.const 30
+        i32.const 200
+        call $set_color
+        local.get $x
+        f32.const 0.016
+        f32.sub
+        f32.const 0.16399999999999998
+        f32.const 0.032
+        f32.const 0.032
+        i32.const 1
+        call $rect
+
+        local.get $i
+        i32.const 4
+        i32.lt_s
+        if
+          i32.const 216
+          i32.const 255
+          i32.const 246
+          i32.const 124
+          call $set_color
+        else
+          i32.const 255
+          i32.const 222
+          i32.const 250
+          i32.const 124
+          call $set_color
+        end
+        local.get $x
+        f32.const 0.18
+        f32.const 0.018
+        i32.const 0
+        call $circle
+
+        i32.const 255
+        i32.const 238
+        i32.const 214
+        i32.const 96
+        call $set_color
+        f32.const 1.15
+        call $set_thickness
+        local.get $x
+        f32.const 0.012
+        f32.sub
+        f32.const 0.18
+        local.get $x
+        f32.const 0.012
+        f32.add
+        f32.const 0.18
+        call $line
+
+        local.get $i
+        i32.const 1
+        i32.add
+        local.set $i
+        br $lane_loop
+      end
+    end
+
+    i32.const 0
+    local.set $i
+    block $notes_done
+      loop $notes_loop
+        local.get $i
+        i32.const 662
+        i32.ge_s
+        br_if $notes_done
+
+        i32.const 0
+        local.get $i
+        i32.const 4
+        i32.mul
+        i32.add
+        f32.load
+        local.get $time
+        f32.sub
+        local.set $delta_seconds
+
+        local.get $delta_seconds
+        f32.const -0.0
+        f32.ge
+        if
+          local.get $delta_seconds
+          f32.const 1.1
+          f32.le
+          if
+            i32.const 5296
+            local.get $i
+            i32.add
+            i32.load8_u
+            local.set $meta
+
+            local.get $meta
+            i32.const 3
+            i32.and
+            local.set $lane
+
+            local.get $meta
+            i32.const 2
+            i32.shr_u
+            i32.const 1
+            i32.and
+            local.set $side
+
+            local.get $meta
+            i32.const 3
+            i32.shr_u
+            i32.const 1
+            i32.and
+            local.set $special
+
+            local.get $side
+            local.get $lane
+            call $lane_x
+            local.set $x
+
+            local.get $delta_seconds
+            call $note_y
+            local.set $y
+
+            i32.const 2648
+            local.get $i
+            i32.const 4
+            i32.mul
+            i32.add
+            f32.load
+            local.set $hold_seconds
+
+            local.get $special
+            if
+              i32.const 255
+              i32.const 170
+              i32.const 106
+              i32.const 102
+              call $set_color
+            else
+              local.get $side
+              if
+                i32.const 104
+                i32.const 255
+                i32.const 228
+                i32.const 96
+                call $set_color
+              else
+                i32.const 255
+                i32.const 142
+                i32.const 238
+                i32.const 96
+                call $set_color
+              end
+            end
+
+            local.get $hold_seconds
+            f32.const 0.05
+            f32.gt
+            if
+              local.get $delta_seconds
+              local.get $hold_seconds
+              f32.add
+              call $note_y
+              local.set $tail_y
+              local.get $x
+              f32.const 0.018
+              f32.sub
+              local.get $y
+              f32.const 0.014
+              f32.add
+              f32.const 0.036
+              local.get $y
+              local.get $tail_y
+              call $hold_height
+              i32.const 1
+              call $rect
+
+              local.get $special
+              if
+                i32.const 255
+                i32.const 198
+                i32.const 138
+                i32.const 198
+                call $set_color
+              else
+                local.get $side
+                if
+                  i32.const 154
+                  i32.const 255
+                  i32.const 238
+                  i32.const 208
+                  call $set_color
+                else
+                  i32.const 255
+                  i32.const 190
+                  i32.const 248
+                  i32.const 208
+                  call $set_color
+                end
+              end
+              local.get $x
+              f32.const 0.011
+              f32.sub
+              local.get $y
+              f32.const 0.012
+              f32.add
+              f32.const 0.022
+              local.get $y
+              local.get $tail_y
+              call $hold_height
+              i32.const 1
+              call $rect
+
+              local.get $x
+              local.get $tail_y
+              f32.const 0.01
+              i32.const 1
+              call $circle
+            end
+
+            local.get $special
+            if
+              i32.const 255
+              i32.const 178
+              i32.const 102
+              i32.const 92
+              call $set_color
+            else
+              local.get $side
+              if
+                i32.const 86
+                i32.const 255
+                i32.const 228
+                i32.const 84
+                call $set_color
+              else
+                i32.const 255
+                i32.const 146
+                i32.const 238
+                i32.const 84
+                call $set_color
+              end
+            end
+            local.get $x
+            f32.const 0.029
+            f32.sub
+            local.get $y
+            f32.const 0.029
+            f32.sub
+            f32.const 0.058
+            f32.const 0.058
+            i32.const 1
+            call $rect
+
+            local.get $special
+            if
+              i32.const 255
+              i32.const 198
+              i32.const 122
+              i32.const 228
+              call $set_color
+            else
+              local.get $side
+              if
+                i32.const 122
+                i32.const 255
+                i32.const 234
+                i32.const 222
+                call $set_color
+              else
+                i32.const 255
+                i32.const 170
+                i32.const 244
+                i32.const 222
+                call $set_color
+              end
+            end
+            local.get $x
+            f32.const 0.023
+            f32.sub
+            local.get $y
+            f32.const 0.023
+            f32.sub
+            f32.const 0.046
+            f32.const 0.046
+            i32.const 1
+            call $rect
+
+            i32.const 15
+            i32.const 22
+            i32.const 28
+            i32.const 154
+            call $set_color
+            local.get $x
+            f32.const 0.015
+            f32.sub
+            local.get $y
+            f32.const 0.015
+            f32.sub
+            f32.const 0.03
+            f32.const 0.03
+            i32.const 1
+            call $rect
+
+            local.get $special
+            if
+              i32.const 255
+              i32.const 236
+              i32.const 204
+              i32.const 144
+              call $set_color
+            else
+              i32.const 252
+              i32.const 250
+              i32.const 255
+              i32.const 136
+              call $set_color
+            end
+            local.get $x
+            f32.const 0.016
+            f32.sub
+            local.get $y
+            f32.const 0.018
+            f32.sub
+            f32.const 0.032
+            f32.const 0.008
+            i32.const 1
+            call $rect
+
+            f32.const 1.85
+            call $set_thickness
+            i32.const 10
+            i32.const 14
+            i32.const 18
+            i32.const 188
+            call $set_color
+            local.get $x
+            f32.const 0.023
+            f32.sub
+            local.get $y
+            f32.const 0.023
+            f32.sub
+            f32.const 0.046
+            f32.const 0.046
+            i32.const 0
+            call $rect
+
+            local.get $special
+            if
+              i32.const 255
+              i32.const 224
+              i32.const 182
+              i32.const 215
+              call $set_color
+            else
+              i32.const 236
+              i32.const 246
+              i32.const 252
+              i32.const 210
+              call $set_color
+            end
+          end
+        end
+
+        local.get $i
+        i32.const 1
+        i32.add
+        local.set $i
+        br $notes_loop
+      end
+    end
+
+    i32.const 96
+    i32.const 182
+    i32.const 170
+    i32.const 92
+    call $set_color
+    f32.const 0.08
+    f32.const 0.93
+    f32.const 0.84
+    f32.const 0.02
+    i32.const 1
+    call $rect
+
+    i32.const 18
+    i32.const 26
+    i32.const 34
+    i32.const 180
+    call $set_color
+    f32.const 0.082
+    f32.const 0.934
+    f32.const 0.836
+    f32.const 0.012
+    i32.const 1
+    call $rect
+
+    i32.const 255
+    i32.const 198
+    i32.const 122
+    i32.const 188
+    call $set_color
+    f32.const 0.082
+    f32.const 0.934
+    local.get $progress
+    f32.const 0.836
+    f32.mul
+    f32.const 0.012
+    i32.const 1
+    call $rect
+
+    i32.const 255
+    i32.const 234
+    i32.const 202
+    i32.const 172
+    call $set_color
+    f32.const 0.082
+    local.get $progress
+    f32.const 0.836
+    f32.mul
+    f32.add
+    f32.const 0.94
+    f32.const 0.012
+    local.get $pulse
+    f32.const 0.004
+    f32.mul
+    f32.add
+    i32.const 1
+    call $circle
+  )
+)

@@ -1,0 +1,12 @@
+{
+  "id": "clinic-sorrow-fnf-highway",
+  "type": "visualizer",
+  "runtime": "wasm",
+  "entry": "render",
+  "binaryRef": "clinic-sorrow_fnf_vis",
+  "dataRefs": {
+    "config": "clinic-sorrow_fnf_config",
+    "chart": "clinic-sorrow_chart"
+  },
+  "version": "1.0.0"
+}

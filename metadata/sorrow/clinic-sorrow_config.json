@@ -1,0 +1,14 @@
+{
+  "name": "Clinic Sorrow FNF Highway",
+  "color": "#7FF8E0",
+  "accent": "#F6B36A",
+  "thickness": 2,
+  "amplitude": 72,
+  "sampleCount": 128,
+  "scrollSpeed": 3.0,
+  "noteCount": 662,
+  "specialNoteCount": 77,
+  "scrollWindowSeconds": 1.1,
+  "pastWindowSeconds": 0.0,
+  "style": "fnf-chart"
+}
