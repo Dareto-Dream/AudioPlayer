@@ -18,6 +18,7 @@ public sealed class SpectrumVisualizerControl : Control
     private bool isActive;
     private Image? albumArt;
     private float diskAngle;
+    private float animationPhase;
 
     public SpectrumVisualizerControl()
     {
@@ -133,8 +134,18 @@ public sealed class SpectrumVisualizerControl : Control
         {
             if (mode == VisualizerMode.SpinningDisk)
                 diskAngle = (diskAngle + 0.38f) % 360f;
-            else if (mode == VisualizerMode.RadialSpectrum)
-                diskAngle = (diskAngle + 0.12f) % 360f;
+
+            var phaseStep = mode switch
+            {
+                VisualizerMode.RadialSpectrum => 0.85f,
+                VisualizerMode.Graph3D => 1.05f,
+                VisualizerMode.DancingColors => 1.65f,
+                VisualizerMode.Sphere3D => 0.90f,
+                _ => 0f
+            };
+
+            if (phaseStep > 0)
+                animationPhase = (animationPhase + phaseStep + (frame.RmsLevel * 2.4f)) % 360f;
         }
 
         Invalidate();
@@ -148,6 +159,8 @@ public sealed class SpectrumVisualizerControl : Control
         peakLevel = 0;
         rmsLevel = 0;
         isActive = false;
+        diskAngle = 0;
+        animationPhase = 0;
         Invalidate();
     }
 
@@ -180,6 +193,7 @@ public sealed class SpectrumVisualizerControl : Control
             IsActive = isActive,
             ShowPeaks = showPeaks,
             AlbumArt = albumArt,
-            DiskAngle = diskAngle
+            DiskAngle = diskAngle,
+            AnimationPhase = animationPhase
         };
 }

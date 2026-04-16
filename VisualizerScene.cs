@@ -56,4 +56,5 @@ internal sealed class VisualizerScene
     public required bool ShowPeaks { get; init; }
     public required Image? AlbumArt { get; init; }
     public required float DiskAngle { get; init; }
+    public required float AnimationPhase { get; init; }
 }

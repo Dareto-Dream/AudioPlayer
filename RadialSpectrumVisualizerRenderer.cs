@@ -41,8 +41,7 @@ internal sealed class RadialSpectrumVisualizerRenderer : VisualizerRendererBase
             EndCap = LineCap.Round
         };
 
-        // Slow rotation driven by DiskAngle (incremented for this mode in SpectrumVisualizerControl)
-        var rotationOffset = scene.DiskAngle * 0.15f;
+        var rotationOffset = scene.AnimationPhase * 0.85f;
 
         for (var index = 0; index < displayBars; index++)
         {

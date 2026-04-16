@@ -9,5 +9,8 @@ public enum VisualizerMode
     RadialSpectrum,
     Oscilloscope,
     VUMeter,
-    SpectrumWave
+    SpectrumWave,
+    Graph3D,
+    DancingColors,
+    Sphere3D
 }

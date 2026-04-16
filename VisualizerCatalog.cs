@@ -18,7 +18,10 @@ internal static class VisualizerCatalog
         new(VisualizerMode.RadialSpectrum, "Radial Spectrum", new RadialSpectrumVisualizerRenderer()),
         new(VisualizerMode.Oscilloscope,   "Oscilloscope",    new OscilloscopeVisualizerRenderer()),
         new(VisualizerMode.VUMeter,        "VU Meter",        new VUMeterVisualizerRenderer()),
-        new(VisualizerMode.SpectrumWave,   "Spectrum Wave",   new SpectrumWaveVisualizerRenderer())
+        new(VisualizerMode.SpectrumWave,   "Spectrum Wave",   new SpectrumWaveVisualizerRenderer()),
+        new(VisualizerMode.Graph3D,        "3D Graph",        new Graph3DVisualizerRenderer()),
+        new(VisualizerMode.DancingColors,  "Dancing Colors",  new DancingColorsVisualizerRenderer()),
+        new(VisualizerMode.Sphere3D,       "3D Sphere",       new Sphere3DVisualizerRenderer())
     ];
 
     private static readonly Dictionary<VisualizerMode, VisualizerDefinition> DefinitionsByMode =
