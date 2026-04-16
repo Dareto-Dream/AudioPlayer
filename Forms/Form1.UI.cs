@@ -81,6 +81,7 @@ public partial class Form1
 
         UpdateMenuState();
         Text = track is null ? "Audio Player" : BuildWindowTitle(track);
+        SyncNowPlayingState();
     }
 
     private void UpdateMenuState()

@@ -153,6 +153,8 @@ public partial class Form1
         timer1.Stop();
         DisposeDisplayedArtwork();
         visualizerAlbumArt?.Dispose();
+        nowPlaying.CommandRequested -= NowPlaying_CommandRequested;
+        nowPlaying.Dispose();
         engine.Dispose();
         base.OnFormClosed(e);
     }

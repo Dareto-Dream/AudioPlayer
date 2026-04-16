@@ -6,6 +6,7 @@ namespace AudioPlayer;
 public partial class Form1 : Form
 {
     private readonly AudioEngine engine = new();
+    private readonly WindowsNowPlayingService nowPlaying = new();
     private readonly string? startupPath;
 
     private AppSettings appSettings;
@@ -26,7 +27,11 @@ public partial class Form1 : Form
         themePalette = ThemePalette.Create(appSettings.ThemeMode, appSettings.ThemeAccent);
 
         InitializeComponent();
-        HandleCreated += (_, _) => ApplyTheme();
+        HandleCreated += (_, _) =>
+        {
+            ApplyTheme();
+            InitializeNowPlaying();
+        };
         nextVisualizerCycleTick = Environment.TickCount64 + (long)VisualizerAutoCycleInterval.TotalMilliseconds;
         ApplyTheme();
         PopulateSettings();
