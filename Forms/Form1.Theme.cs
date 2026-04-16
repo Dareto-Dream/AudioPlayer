@@ -6,7 +6,12 @@ public partial class Form1
 {
     private void ApplyTheme()
     {
-        themePalette = ThemePalette.Create(appSettings.ThemeMode, appSettings.ThemeAccent);
+        var (themeMode, themeAccent) = GetEffectiveThemeSelection(engine.CurrentTrack);
+        themePalette = ThemePalette.Create(themeMode, themeAccent);
+        appliedThemeMode = themeMode;
+        appliedThemeAccent = themeAccent;
+        hasAppliedTheme = true;
+
         WindowChromeStyler.ApplyTheme(this, themePalette);
 
         BackColor = WindowBackColor;
@@ -76,6 +81,30 @@ public partial class Form1
         trackBarVolume.Size = new Size(148, 38);
         trackBarSensitivity.Size = new Size(120, 28);
         ApplyInformationVisibility();
+    }
+
+    private void EnsureEffectiveTheme()
+    {
+        var (themeMode, themeAccent) = GetEffectiveThemeSelection(engine.CurrentTrack);
+        if (hasAppliedTheme &&
+            appliedThemeMode == themeMode &&
+            appliedThemeAccent == themeAccent)
+        {
+            return;
+        }
+
+        ApplyTheme();
+    }
+
+    private (ThemeMode Mode, ThemeAccent Accent) GetEffectiveThemeSelection(AudioTrackInfo? track)
+    {
+        if (appSettings.UseEmbeddedTrackThemes &&
+            track?.EmbeddedTheme is { } embeddedTheme)
+        {
+            return (embeddedTheme.Mode, embeddedTheme.Accent);
+        }
+
+        return (appSettings.ThemeMode, appSettings.ThemeAccent);
     }
 
     private void ApplyAppIcon()

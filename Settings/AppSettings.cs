@@ -30,7 +30,9 @@ internal sealed class AppSettings
 {
     public ThemeMode ThemeMode { get; set; } = ThemeMode.Dark;
     public ThemeAccent ThemeAccent { get; set; } = ThemeAccent.Amber;
+    public bool UseEmbeddedTrackThemes { get; set; } = true;
     public VisualizerMode DefaultVisualizer { get; set; } = VisualizerMode.MirrorSpectrum;
+    public bool UseEmbeddedTrackVisualizers { get; set; } = true;
     public int PreferredSampleRate { get; set; }
     public int DefaultVolume { get; set; } = 85;
     public bool PeakHold { get; set; } = true;
@@ -45,7 +47,9 @@ internal sealed class AppSettings
         {
             ThemeMode = ThemeMode,
             ThemeAccent = ThemeAccent,
+            UseEmbeddedTrackThemes = UseEmbeddedTrackThemes,
             DefaultVisualizer = DefaultVisualizer,
+            UseEmbeddedTrackVisualizers = UseEmbeddedTrackVisualizers,
             PreferredSampleRate = PreferredSampleRate,
             DefaultVolume = DefaultVolume,
             PeakHold = PeakHold,

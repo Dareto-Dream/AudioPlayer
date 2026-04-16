@@ -51,7 +51,13 @@ function Remove-OptionalArtifact([string]$Path) {
     }
 }
 
-Remove-Item $publishDir, $releaseDir -Recurse -Force -ErrorAction SilentlyContinue
+# Clean publish (safe)
+Remove-Item $publishDir -Recurse -Force -ErrorAction SilentlyContinue
+
+# DO NOT delete releases (critical for updates)
+if (!(Test-Path $releaseDir)) {
+    New-Item -ItemType Directory -Path $releaseDir | Out-Null
+}
 New-Item -ItemType Directory -Force -Path $buildDir | Out-Null
 
 dotnet publish .\Startup\Startup.csproj -c Release -r win-x64 --self-contained true -o publish

@@ -8,6 +8,10 @@ public partial class Form1
 {
     private void UpdateAlbumArt(AudioTrackInfo? track)
     {
+        visualizerControl.EmbeddedVisualizer = appSettings.UseEmbeddedTrackVisualizers
+            ? track?.EmbeddedVisualizer
+            : null;
+
         if (ReferenceEquals(displayedArtworkTrack, track) && picAlbumArt.Image is not null)
             return;
 
@@ -18,7 +22,6 @@ public partial class Form1
         visualizerAlbumArt?.Dispose();
         visualizerAlbumArt = track?.AlbumArtBytes is { Length: > 0 } bytes ? TryLoadArtwork(bytes) : null;
         visualizerControl.AlbumArt = visualizerAlbumArt;
-        visualizerControl.EmbeddedVisualizer = track?.EmbeddedVisualizer;
         RefreshVisualizerModeOptions(appSettings.DefaultVisualizer);
     }
 

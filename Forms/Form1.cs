@@ -11,6 +11,9 @@ public partial class Form1 : Form
 
     private AppSettings appSettings;
     private ThemePalette themePalette;
+    private ThemeMode appliedThemeMode;
+    private ThemeAccent appliedThemeAccent;
+    private bool hasAppliedTheme;
     private bool isUpdatingSeekBar;
     private bool isApplyingSettings;
     private bool showRemainingTime;

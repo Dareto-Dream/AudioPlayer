@@ -30,6 +30,7 @@ public partial class Form1
     private void UpdateUiState()
     {
         var track = engine.CurrentTrack;
+        EnsureEffectiveTheme();
         UpdateAlbumArt(track);
 
         btnPlayPause.Text = track is null
@@ -140,6 +141,11 @@ public partial class Form1
         if (track.EmbeddedVisualizer is not null)
         {
             technicalLine += $"{separator}Embedded visualizer";
+        }
+
+        if (track.EmbeddedTheme is not null)
+        {
+            technicalLine += $"{separator}Embedded theme";
         }
 
         return descriptiveParts.Count == 0

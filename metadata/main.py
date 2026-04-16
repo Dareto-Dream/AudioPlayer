@@ -1,9 +1,19 @@
-import os
-import json
+import argparse
 import base64
+import json
+import os
+import sys
 from mutagen.id3 import ID3, APIC, TIT2, TALB, TPE1, TXXX
 
 # ---------- helpers ----------
+
+DEFAULT_DELTA_META = {
+    "format": "delta-mp3",
+    "version": "1.0"
+}
+
+DEFAULT_ID3_VERSION = 4
+
 
 def prompt(text, optional=False):
     while True:
@@ -32,6 +42,23 @@ def get_mime(path):
     else:
         raise ValueError("Cover must be .jpg or .png")
 
+
+def parse_data_arguments(values):
+    data_paths = {}
+    for value in values or []:
+        if "=" not in value:
+            raise ValueError(f"Invalid --data value '{value}'. Expected REF=PATH.")
+
+        reference_id, path = value.split("=", 1)
+        reference_id = reference_id.strip()
+        path = path.strip()
+        if not reference_id or not path:
+            raise ValueError(f"Invalid --data value '{value}'. Expected REF=PATH.")
+
+        data_paths[reference_id] = path
+
+    return data_paths
+
 # ---------- metadata ----------
 
 def clear_metadata(mp3_path):
@@ -47,6 +74,21 @@ def add_basic_tags(tags, title, artist, album):
     tags.add(TIT2(encoding=3, text=title))
     tags.add(TPE1(encoding=3, text=artist))
     tags.add(TALB(encoding=3, text=album))
+
+
+def add_delta_meta(tags, format_name=DEFAULT_DELTA_META["format"], version=DEFAULT_DELTA_META["version"]):
+    payload = {
+        "format": format_name,
+        "version": version
+    }
+
+    tags.add(TXXX(
+        encoding=3,
+        desc="DELTA_META",
+        text=json.dumps(payload)
+    ))
+
+    print("[+] DELTA_META added")
 
 def add_cover(tags, cover_path):
     if not cover_path:
@@ -152,7 +194,12 @@ def add_lrc(tags, lrc_path):
 
 # ---------- main ----------
 
-def main():
+def save_tags(tags, mp3_path, id3_version=DEFAULT_ID3_VERSION):
+    tags.save(mp3_path, v2_version=id3_version)
+    print(f"\n[+] Injection complete (saved as ID3v2.{id3_version})")
+
+
+def run_interactive():
     print("=== DELTA VISUALIZER INJECTOR ===\n")
 
     mp3_path = prompt("MP3 file path: ")
@@ -174,6 +221,7 @@ def main():
 
     add_basic_tags(tags, title, artist, album)
     add_cover(tags, cover)
+    add_delta_meta(tags)
 
     print("\n--- Visualizer Module ---\n")
 
@@ -204,10 +252,96 @@ def main():
     lrc_path = prompt("LRC file (optional): ", optional=True)
     add_lrc(tags, lrc_path)
 
-    # save with compatibility
-    tags.save(mp3_path, v2_version=3)
+    save_tags(tags, mp3_path)
 
-    print("\n[+] Injection complete (spec compliant)")
+
+def create_parser():
+    parser = argparse.ArgumentParser(description="Inject DELTA metadata into an MP3 file.")
+    parser.add_argument("--mp3", dest="mp3_path", help="Path to the MP3 file to update.")
+    parser.add_argument("--title", help="Track title.")
+    parser.add_argument("--artist", help="Track artist.")
+    parser.add_argument("--album", help="Track album.")
+    parser.add_argument("--cover", help="Path to cover art (.png/.jpg).")
+    parser.add_argument("--module", dest="module_path", help="Path to the visualizer module JSON.")
+    parser.add_argument("--binary", dest="binary_path", help="Path to the WASM/WAT visualizer payload.")
+    parser.add_argument(
+        "--data",
+        action="append",
+        default=[],
+        metavar="REF=PATH",
+        help="Bind a DELTA data reference id to a file path. Repeat for multiple refs."
+    )
+    parser.add_argument("--lrc", dest="lrc_path", help="Optional path to an LRC lyrics file.")
+    parser.add_argument(
+        "--id3-version",
+        type=int,
+        choices=(3, 4),
+        default=DEFAULT_ID3_VERSION,
+        help="ID3 version to save. Use v2.4 to preserve UTF-8 DELTA frames."
+    )
+    return parser
+
+
+def run_cli(args):
+    required_fields = {
+        "mp3": args.mp3_path,
+        "title": args.title,
+        "artist": args.artist,
+        "album": args.album,
+        "module": args.module_path,
+        "binary": args.binary_path
+    }
+
+    missing = [name for name, value in required_fields.items() if not value]
+    if missing:
+        print(f"[!] Missing required arguments: {', '.join(missing)}")
+        return 1
+
+    if not os.path.exists(args.mp3_path):
+        print(f"[!] MP3 file not found: {args.mp3_path}")
+        return 1
+
+    try:
+        data_paths = parse_data_arguments(args.data)
+    except ValueError as error:
+        print(f"[!] {error}")
+        return 1
+
+    clear_metadata(args.mp3_path)
+
+    tags = ID3()
+    tags.clear()
+
+    add_basic_tags(tags, args.title, args.artist, args.album)
+    add_cover(tags, args.cover)
+    add_delta_meta(tags)
+
+    module = add_visualizer_module(tags, args.module_path)
+    if not module:
+        print("[!] Aborting: invalid module")
+        return 1
+
+    add_binary(tags, module["binaryRef"], args.binary_path)
+
+    for _, reference_id in module.get("dataRefs", {}).items():
+        path = data_paths.get(reference_id)
+        if path:
+            add_data(tags, reference_id, path)
+        else:
+            print(f"[!] Missing data file for ref '{reference_id}'")
+
+    add_lrc(tags, args.lrc_path)
+    save_tags(tags, args.mp3_path, args.id3_version)
+    return 0
+
+def main():
+    if len(sys.argv) == 1:
+        run_interactive()
+        return
+
+    parser = create_parser()
+    args = parser.parse_args()
+    raise SystemExit(run_cli(args))
 
 # ---------- run ----------
 

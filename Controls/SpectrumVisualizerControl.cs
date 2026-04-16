@@ -21,6 +21,7 @@ public sealed class SpectrumVisualizerControl : Control
     private float diskAngle;
     private float animationPhase;
     private float playbackTimeSeconds;
+    private EmbeddedVisualizerContext? embeddedVisualizerSource;
     private EmbeddedVisualizerSession? embeddedVisualizer;
 
     public SpectrumVisualizerControl()
@@ -104,6 +105,10 @@ public sealed class SpectrumVisualizerControl : Control
     {
         set
         {
+            if (ReferenceEquals(embeddedVisualizerSource, value))
+                return;
+
+            embeddedVisualizerSource = value;
             embeddedVisualizer?.Dispose();
             embeddedVisualizer = EmbeddedVisualizerSession.TryCreate(value);
             Invalidate();
@@ -232,6 +237,7 @@ public sealed class SpectrumVisualizerControl : Control
     {
         if (disposing)
         {
+            embeddedVisualizerSource = null;
             embeddedVisualizer?.Dispose();
             embeddedVisualizer = null;
         }

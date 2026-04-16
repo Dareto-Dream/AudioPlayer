@@ -11,6 +11,9 @@ public partial class Form1
     {
         var normalizedSettings = AppSettingsStore.Normalize(appSettings.Clone());
         appSettings = normalizedSettings;
+        visualizerControl.EmbeddedVisualizer = appSettings.UseEmbeddedTrackVisualizers
+            ? engine.CurrentTrack?.EmbeddedVisualizer
+            : null;
 
         isApplyingSettings = true;
         try
@@ -66,8 +69,11 @@ public partial class Form1
             ?? (cmbVisualizerMode.SelectedItem as SelectionOption<VisualizerMode>)?.Value
             ?? VisualizerMode.MirrorSpectrum;
         var hasAlbumArt = visualizerAlbumArt is not null;
-        var availableModes = VisualizerCatalog.GetOptions(hasAlbumArt);
         selectedMode = VisualizerCatalog.GetPreferredMode(selectedMode, hasAlbumArt);
+        var isLockedToEmbedded = visualizerControl.UsesEmbeddedVisualizer;
+        var availableModes = isLockedToEmbedded
+            ? [CreateEmbeddedVisualizerOption(selectedMode)]
+            : VisualizerCatalog.GetOptions(hasAlbumArt);
 
         var wasApplyingSettings = isApplyingSettings;
         isApplyingSettings = true;
@@ -77,6 +83,7 @@ public partial class Form1
             cmbVisualizerMode.Items.Clear();
             cmbVisualizerMode.Items.AddRange(availableModes.Select(static option => (object)option).ToArray());
             cmbVisualizerMode.SelectedIndex = Array.FindIndex(availableModes, option => option.Value == selectedMode);
+            cmbVisualizerMode.Enabled = !isLockedToEmbedded && availableModes.Length > 1;
         }
         finally
         {
@@ -139,7 +146,7 @@ public partial class Form1
 
     private void AdvanceVisualizerMode()
     {
-        if (cmbVisualizerMode.Items.Count <= 1)
+        if (visualizerControl.UsesEmbeddedVisualizer || cmbVisualizerMode.Items.Count <= 1)
             return;
 
         cmbVisualizerMode.SelectedIndex = cmbVisualizerMode.SelectedIndex switch
@@ -159,18 +166,30 @@ public partial class Form1
 
     private string GetVisualizerModeToolTip() =>
         visualizerControl.UsesEmbeddedVisualizer
-            ? "Embedded visualizer metadata is active for this track. Built-in mode selection remains the fallback."
+            ? "This track is locked to its embedded visualizer. Turn off 'Use embedded track visualizers' in Settings to pick a built-in mode."
             : GetVisualizerCycleToolTip();
+
+    private SelectionOption<VisualizerMode> CreateEmbeddedVisualizerOption(VisualizerMode fallbackMode)
+    {
+        var displayName = engine.CurrentTrack?.EmbeddedVisualizer?.DisplayName;
+        var label = string.IsNullOrWhiteSpace(displayName)
+            ? "Embedded Visualizer"
+            : $"Embedded: {displayName}";
+        return new SelectionOption<VisualizerMode>(label, fallbackMode);
+    }
 
     private void ShowSettingsDialog()
     {
+        var currentTrack = engine.CurrentTrack;
         using var dialog = new SettingsDialog(
             appSettings,
             GetAvailableVisualizerModeOptions(),
             GetCurrentVisualizerMode(),
             GetAllVisualizerModeOptions(),
             GetSampleRateOptions(),
-            GetCycleDurationOptions());
+            GetCycleDurationOptions(),
+            currentTrack?.EmbeddedVisualizer?.DisplayName,
+            currentTrack?.EmbeddedTheme?.DisplayName);
 
         if (dialog.ShowDialog(this) != DialogResult.OK)
             return;

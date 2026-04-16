@@ -173,6 +173,7 @@ public sealed class AudioEngine : IDisposable
             metadata.AlbumArtBytes,
             metadata.Lyrics,
             metadata.EmbeddedVisualizer,
+            metadata.EmbeddedTheme,
             formatName,
             Math.Max(1, stream.WaveFormat.Channels),
             stream.WaveFormat.SampleRate,

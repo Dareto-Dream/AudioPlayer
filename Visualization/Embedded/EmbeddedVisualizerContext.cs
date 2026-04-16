@@ -66,7 +66,7 @@ public sealed class EmbeddedVisualizerContext
 {
     private readonly IReadOnlyDictionary<string, EmbeddedDataBlock> dataBlocks;
     private readonly IReadOnlyDictionary<string, string> dataRefs;
-    private string? displayLabel;
+    private string? displayName;
 
     internal EmbeddedVisualizerContext(
         EmbeddedVisualizerModule module,
@@ -87,7 +87,9 @@ public sealed class EmbeddedVisualizerContext
 
     internal IReadOnlyDictionary<string, EmbeddedDataBlock> DataBlocks => dataBlocks;
 
-    internal string DisplayLabel => displayLabel ??= CreateDisplayLabel(Module.Id);
+    internal string DisplayLabel => DisplayName;
+
+    public string DisplayName => displayName ??= CreateDisplayLabel(Module.Id);
 
     internal EmbeddedDataBlock? GetDataByReference(string referenceId) =>
         dataBlocks.TryGetValue(referenceId, out var dataBlock) ? dataBlock : null;

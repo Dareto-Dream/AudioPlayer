@@ -5,6 +5,9 @@ namespace AudioPlayer;
 internal sealed class SettingsDialog : Form
 {
     private readonly AppSettings workingSettings;
+    private readonly SelectionOption<VisualizerMode>[] currentVisualizerOptions;
+    private readonly string? activeEmbeddedVisualizerLabel;
+    private readonly string? activeEmbeddedThemeLabel;
     private readonly List<Panel> sectionPanels = [];
     private readonly List<Control> sectionSurfaceControls = [];
     private readonly List<Label> fieldTitleLabels = [];
@@ -26,9 +29,11 @@ internal sealed class SettingsDialog : Form
     private readonly ModernComboBox cmbPlaybackRate;
     private readonly ModernComboBox cmbCycleDuration;
     private readonly CheckBox chkShowMoreInfo;
+    private readonly CheckBox chkUseEmbeddedThemes;
     private readonly CheckBox chkPeakHold;
     private readonly CheckBox chkAutoCycle;
     private readonly CheckBox chkAutoPlayOnOpen;
+    private readonly CheckBox chkUseEmbeddedVisualizers;
     private readonly ModernSlider sldSensitivity;
     private readonly ModernSlider sldDefaultVolume;
     private readonly Label lblSensitivityValue;
@@ -43,9 +48,18 @@ internal sealed class SettingsDialog : Form
         VisualizerMode currentVisualizer,
         IReadOnlyList<SelectionOption<VisualizerMode>> defaultVisualizerOptions,
         IReadOnlyList<SelectionOption<int>> sampleRateOptions,
-        IReadOnlyList<SelectionOption<int>> cycleDurationOptions)
+        IReadOnlyList<SelectionOption<int>> cycleDurationOptions,
+        string? activeEmbeddedVisualizerLabel,
+        string? activeEmbeddedThemeLabel)
     {
         workingSettings = currentSettings.Clone();
+        this.currentVisualizerOptions = currentVisualizerOptions.ToArray();
+        this.activeEmbeddedVisualizerLabel = string.IsNullOrWhiteSpace(activeEmbeddedVisualizerLabel)
+            ? null
+            : activeEmbeddedVisualizerLabel.Trim();
+        this.activeEmbeddedThemeLabel = string.IsNullOrWhiteSpace(activeEmbeddedThemeLabel)
+            ? null
+            : activeEmbeddedThemeLabel.Trim();
 
         AutoScaleMode = AutoScaleMode.Font;
         ClientSize = new Size(720, 760);
@@ -119,9 +133,11 @@ internal sealed class SettingsDialog : Form
         cmbCycleDuration = CreateComboBox();
 
         chkShowMoreInfo = CreateCheckBox("Show details");
+        chkUseEmbeddedThemes = CreateCheckBox("Enabled");
         chkPeakHold = CreateCheckBox("Enabled");
         chkAutoCycle = CreateCheckBox("Enabled");
         chkAutoPlayOnOpen = CreateCheckBox("Enabled");
+        chkUseEmbeddedVisualizers = CreateCheckBox("Enabled");
 
         sldSensitivity = CreateSlider();
         sldDefaultVolume = CreateSlider();
@@ -165,6 +181,7 @@ internal sealed class SettingsDialog : Form
             "Change the shell theme and how much metadata stays visible by default.");
         appearanceSection.Controls.Add(CreateFieldRow("Theme mode", "Switch between the dark and light shell.", cmbThemeMode));
         appearanceSection.Controls.Add(CreateFieldRow("Theme accent", "Choose the accent color used across buttons, menus, and highlights.", CreateAccentControlHost()));
+        appearanceSection.Controls.Add(CreateFieldRow("Use embedded track themes", GetEmbeddedThemeDescription(), chkUseEmbeddedThemes));
         appearanceSection.Controls.Add(CreateFieldRow("Show more info", "Displays the extra artist, format, and duration line under the track title.", chkShowMoreInfo));
 
         var visualizerSection = CreateSection(
@@ -172,6 +189,7 @@ internal sealed class SettingsDialog : Form
             "Set how the visualizer behaves right now and when new tracks are opened.");
         visualizerSection.Controls.Add(CreateFieldRow("Current visualizer", "Applies immediately to the track that's already loaded.", cmbCurrentVisualizer));
         visualizerSection.Controls.Add(CreateFieldRow("Default visualizer", "Used for newly loaded tracks. Spinning Disk falls back when no album art exists.", cmbDefaultVisualizer));
+        visualizerSection.Controls.Add(CreateFieldRow("Use embedded track visualizers", GetEmbeddedVisualizerDescription(), chkUseEmbeddedVisualizers));
         visualizerSection.Controls.Add(CreateFieldRow("Auto-cycle visualizers", "Rotates through the available visualizers while a track is loaded.", chkAutoCycle));
         visualizerSection.Controls.Add(CreateFieldRow("Cycle duration", "How long each visualizer stays on screen before rotating.", cmbCycleDuration));
         visualizerSection.Controls.Add(CreateFieldRow("Peak hold", "Keeps peak markers visible for a brief moment in spectrum views.", chkPeakHold));
@@ -220,7 +238,7 @@ internal sealed class SettingsDialog : Form
 
         Controls.Add(rootLayout);
 
-        PopulateComboOptions(currentVisualizerOptions, currentVisualizer, defaultVisualizerOptions, sampleRateOptions, cycleDurationOptions);
+        PopulateComboOptions(currentVisualizer, defaultVisualizerOptions, sampleRateOptions, cycleDurationOptions);
         WireEvents();
         ApplyThemePreview();
     }
@@ -245,8 +263,17 @@ internal sealed class SettingsDialog : Form
         return base.ProcessCmdKey(ref msg, keyData);
     }
 
+    private string GetEmbeddedThemeDescription() =>
+        activeEmbeddedThemeLabel is null
+            ? "If a track embeds a theme, the player can lock the shell to it until the track changes."
+            : $"The current track embeds the theme '{activeEmbeddedThemeLabel}'. Turn this off to keep using the app theme instead.";
+
+    private string GetEmbeddedVisualizerDescription() =>
+        activeEmbeddedVisualizerLabel is null
+            ? "If a track embeds a visualizer, the player can lock playback to it instead of built-in visualizers."
+            : $"The current track embeds the visualizer '{activeEmbeddedVisualizerLabel}'. Turn this off to pick a built-in visualizer instead.";
+
     private void PopulateComboOptions(
-        IReadOnlyList<SelectionOption<VisualizerMode>> currentVisualizerOptions,
         VisualizerMode currentVisualizer,
         IReadOnlyList<SelectionOption<VisualizerMode>> defaultVisualizerOptions,
         IReadOnlyList<SelectionOption<int>> sampleRateOptions,
@@ -272,22 +299,22 @@ internal sealed class SettingsDialog : Form
                 new SelectionOption<ThemeAccent>("Sunset",  ThemeAccent.Sunset),
                 new SelectionOption<ThemeAccent>("Gold",    ThemeAccent.Gold)
             ]);
-        cmbCurrentVisualizer.Items.AddRange(currentVisualizerOptions.Select(static option => (object)option).ToArray());
         cmbDefaultVisualizer.Items.AddRange(defaultVisualizerOptions.Select(static option => (object)option).ToArray());
         cmbPlaybackRate.Items.AddRange(sampleRateOptions.Select(static option => (object)option).ToArray());
         cmbCycleDuration.Items.AddRange(cycleDurationOptions.Select(static option => (object)option).ToArray());
 
         SelectComboValue(cmbThemeMode, workingSettings.ThemeMode);
         SelectComboValue(cmbAccent, workingSettings.ThemeAccent);
-        SelectComboValue(cmbCurrentVisualizer, currentVisualizer);
         SelectComboValue(cmbDefaultVisualizer, workingSettings.DefaultVisualizer);
         SelectComboValue(cmbPlaybackRate, workingSettings.PreferredSampleRate);
         SelectComboValue(cmbCycleDuration, workingSettings.VisualizerCycleSeconds);
 
         chkShowMoreInfo.Checked = workingSettings.ShowMoreInfo;
+        chkUseEmbeddedThemes.Checked = workingSettings.UseEmbeddedTrackThemes;
         chkPeakHold.Checked = workingSettings.PeakHold;
         chkAutoCycle.Checked = workingSettings.EnableVisualizerAutoCycle;
         chkAutoPlayOnOpen.Checked = workingSettings.AutoPlayOnOpen;
+        chkUseEmbeddedVisualizers.Checked = workingSettings.UseEmbeddedTrackVisualizers;
 
         sldSensitivity.Minimum = 50;
         sldSensitivity.Maximum = 200;
@@ -298,13 +325,17 @@ internal sealed class SettingsDialog : Form
         UpdateSliderLabels();
         UpdateCycleDurationState();
         SelectedCurrentVisualizer = currentVisualizer;
+        RefreshCurrentVisualizerOptions();
     }
 
     private void WireEvents()
     {
         cmbThemeMode.SelectedIndexChanged += (_, _) => ApplyThemePreview();
         cmbAccent.SelectedIndexChanged += (_, _) => ApplyThemePreview();
+        cmbCurrentVisualizer.SelectedIndexChanged += (_, _) =>
+            SelectedCurrentVisualizer = GetSelectedValue(cmbCurrentVisualizer, SelectedCurrentVisualizer);
         chkAutoCycle.CheckedChanged += (_, _) => UpdateCycleDurationState();
+        chkUseEmbeddedVisualizers.CheckedChanged += (_, _) => RefreshCurrentVisualizerOptions();
         sldSensitivity.Scroll += (_, _) => UpdateSliderLabels();
         sldDefaultVolume.Scroll += (_, _) => UpdateSliderLabels();
     }
@@ -318,6 +349,34 @@ internal sealed class SettingsDialog : Form
     private void UpdateCycleDurationState()
     {
         cmbCycleDuration.Enabled = chkAutoCycle.Checked;
+    }
+
+    private void RefreshCurrentVisualizerOptions()
+    {
+        var isLockedToEmbedded = chkUseEmbeddedVisualizers.Checked && activeEmbeddedVisualizerLabel is not null;
+
+        cmbCurrentVisualizer.BeginUpdate();
+        try
+        {
+            cmbCurrentVisualizer.Items.Clear();
+            if (isLockedToEmbedded)
+            {
+                cmbCurrentVisualizer.Items.Add(new SelectionOption<VisualizerMode>(
+                    $"Embedded: {activeEmbeddedVisualizerLabel}",
+                    SelectedCurrentVisualizer));
+                cmbCurrentVisualizer.SelectedIndex = 0;
+                cmbCurrentVisualizer.Enabled = false;
+                return;
+            }
+
+            cmbCurrentVisualizer.Items.AddRange(currentVisualizerOptions.Select(static option => (object)option).ToArray());
+            SelectComboValue(cmbCurrentVisualizer, SelectedCurrentVisualizer);
+            cmbCurrentVisualizer.Enabled = cmbCurrentVisualizer.Items.Count > 1;
+        }
+        finally
+        {
+            cmbCurrentVisualizer.EndUpdate();
+        }
     }
 
     private void ApplyThemePreview()
@@ -367,9 +426,11 @@ internal sealed class SettingsDialog : Form
         ThemeControlStyler.ApplySliderTheme(sldSensitivity, palette);
         ThemeControlStyler.ApplySliderTheme(sldDefaultVolume, palette);
         ThemeControlStyler.ApplyCheckBoxTheme(chkShowMoreInfo, palette);
+        ThemeControlStyler.ApplyCheckBoxTheme(chkUseEmbeddedThemes, palette);
         ThemeControlStyler.ApplyCheckBoxTheme(chkPeakHold, palette);
         ThemeControlStyler.ApplyCheckBoxTheme(chkAutoCycle, palette);
         ThemeControlStyler.ApplyCheckBoxTheme(chkAutoPlayOnOpen, palette);
+        ThemeControlStyler.ApplyCheckBoxTheme(chkUseEmbeddedVisualizers, palette);
 
         ThemeControlStyler.ApplyGhostButtonTheme(btnCancel, palette, palette.BorderStrongColor);
         ThemeControlStyler.ApplyPrimaryButtonTheme(btnSave, palette, palette.AccentPrimaryColor);
@@ -383,7 +444,9 @@ internal sealed class SettingsDialog : Form
     {
         workingSettings.ThemeMode = GetSelectedValue(cmbThemeMode, ThemeMode.Dark);
         workingSettings.ThemeAccent = GetSelectedValue(cmbAccent, ThemeAccent.Amber);
+        workingSettings.UseEmbeddedTrackThemes = chkUseEmbeddedThemes.Checked;
         workingSettings.DefaultVisualizer = GetSelectedValue(cmbDefaultVisualizer, VisualizerMode.MirrorSpectrum);
+        workingSettings.UseEmbeddedTrackVisualizers = chkUseEmbeddedVisualizers.Checked;
         workingSettings.PreferredSampleRate = GetSelectedValue(cmbPlaybackRate, 0);
         workingSettings.DefaultVolume = sldDefaultVolume.Value;
         workingSettings.PeakHold = chkPeakHold.Checked;
