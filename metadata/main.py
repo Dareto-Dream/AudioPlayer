@@ -13,6 +13,19 @@ DEFAULT_DELTA_META = {
 }
 
 DEFAULT_ID3_VERSION = 4
+VALID_THEME_MODES = {"dark", "light", "oled", "midnight"}
+VALID_THEME_ACCENTS = {
+    "amber",
+    "ocean",
+    "rose",
+    "forest",
+    "violet",
+    "crimson",
+    "cyan",
+    "mint",
+    "sunset",
+    "gold"
+}
 
 
 def prompt(text, optional=False):
@@ -109,6 +122,51 @@ def add_cover(tags, cover_path):
 
     print("[+] Cover added")
 
+
+def add_theme(tags, theme_path):
+    content = read_text(theme_path)
+    if not content:
+        print("[!] Failed to read theme")
+        return None
+
+    try:
+        theme = json.loads(content)
+    except Exception as e:
+        print(f"[!] Invalid theme JSON: {e}")
+        return None
+
+    theme_type = theme.get("type")
+    if theme_type and str(theme_type).strip().lower() != "theme":
+        print("[!] Theme metadata must use type=theme when 'type' is present")
+        return None
+
+    mode = str(theme.get("mode", theme.get("themeMode", ""))).strip()
+    accent = str(theme.get("accent", theme.get("themeAccent", ""))).strip()
+    if not mode:
+        print("[!] Theme is missing mode/themeMode")
+        return None
+
+    if not accent:
+        print("[!] Theme is missing accent/themeAccent")
+        return None
+
+    if mode.lower() not in VALID_THEME_MODES:
+        print(f"[!] Invalid theme mode '{mode}'")
+        return None
+
+    if accent.lower() not in VALID_THEME_ACCENTS:
+        print(f"[!] Invalid theme accent '{accent}'")
+        return None
+
+    tags.add(TXXX(
+        encoding=3,
+        desc="DELTA_THEME",
+        text=json.dumps(theme)
+    ))
+
+    print("[+] Theme added")
+    return theme
+
 # ---------- SPEC: VISUALIZER ----------
 
 def add_visualizer_module(tags, module_path):
@@ -200,7 +258,7 @@ def save_tags(tags, mp3_path, id3_version=DEFAULT_ID3_VERSION):
 
 
 def run_interactive():
-    print("=== DELTA VISUALIZER INJECTOR ===\n")
+    print("=== DELTA METADATA INJECTOR ===\n")
 
     mp3_path = prompt("MP3 file path: ")
     if not os.path.exists(mp3_path):
@@ -223,29 +281,37 @@ def run_interactive():
     add_cover(tags, cover)
     add_delta_meta(tags)
 
-    print("\n--- Visualizer Module ---\n")
+    print("\n--- Embedded Theme (Optional) ---\n")
 
-    module_path = prompt("Visualizer module JSON path: ")
-    module = add_visualizer_module(tags, module_path)
+    theme_path = prompt("Theme JSON path (optional): ", optional=True)
+    if theme_path:
+        theme = add_theme(tags, theme_path)
+        if not theme:
+            print("[!] Aborting: invalid theme")
+            return
 
-    if not module:
-        print("[!] Aborting: invalid module")
-        return
+    print("\n--- Visualizer Module (Optional) ---\n")
 
-    print("\n--- Binary (WASM) ---\n")
+    module_path = prompt("Visualizer module JSON path (optional): ", optional=True)
+    if module_path:
+        module = add_visualizer_module(tags, module_path)
+        if not module:
+            print("[!] Aborting: invalid module")
+            return
 
-    binary_key = module["binaryRef"]
-    binary_path = prompt(f"Binary file for '{binary_key}': ")
+        print("\n--- Binary (WASM/WAT) ---\n")
 
-    add_binary(tags, binary_key, binary_path)
+        binary_key = module["binaryRef"]
+        binary_path = prompt(f"Binary file for '{binary_key}': ")
+        add_binary(tags, binary_key, binary_path)
 
-    print("\n--- Data Blocks ---\n")
+        print("\n--- Data Blocks ---\n")
 
-    data_refs = module.get("dataRefs", {})
-    for key, ref in data_refs.items():
-        path = prompt(f"Data file for '{ref}' ({key}): ", optional=True)
-        if path:
-            add_data(tags, ref, path)
+        data_refs = module.get("dataRefs", {})
+        for key, ref in data_refs.items():
+            path = prompt(f"Data file for '{ref}' ({key}): ", optional=True)
+            if path:
+                add_data(tags, ref, path)
 
     print("\n--- LRC Fallback ---\n")
 
@@ -262,14 +328,15 @@ def create_parser():
     parser.add_argument("--artist", help="Track artist.")
     parser.add_argument("--album", help="Track album.")
     parser.add_argument("--cover", help="Path to cover art (.png/.jpg).")
-    parser.add_argument("--module", dest="module_path", help="Path to the visualizer module JSON.")
-    parser.add_argument("--binary", dest="binary_path", help="Path to the WASM/WAT visualizer payload.")
+    parser.add_argument("--theme", dest="theme_path", help="Optional path to embedded theme JSON.")
+    parser.add_argument("--module", dest="module_path", help="Optional path to the visualizer module JSON.")
+    parser.add_argument("--binary", dest="binary_path", help="Optional path to the WASM/WAT visualizer payload.")
     parser.add_argument(
         "--data",
         action="append",
         default=[],
         metavar="REF=PATH",
-        help="Bind a DELTA data reference id to a file path. Repeat for multiple refs."
+        help="Bind a DELTA data reference id to a file path. Repeat for multiple refs. Only used with --module."
     )
     parser.add_argument("--lrc", dest="lrc_path", help="Optional path to an LRC lyrics file.")
     parser.add_argument(
@@ -287,9 +354,7 @@ def run_cli(args):
         "mp3": args.mp3_path,
         "title": args.title,
         "artist": args.artist,
-        "album": args.album,
-        "module": args.module_path,
-        "binary": args.binary_path
+        "album": args.album
     }
 
     missing = [name for name, value in required_fields.items() if not value]
@@ -307,6 +372,14 @@ def run_cli(args):
         print(f"[!] {error}")
         return 1
 
+    if args.binary_path and not args.module_path:
+        print("[!] --binary requires --module")
+        return 1
+
+    if args.data and not args.module_path:
+        print("[!] --data requires --module")
+        return 1
+
     clear_metadata(args.mp3_path)
 
     tags = ID3()
@@ -316,19 +389,30 @@ def run_cli(args):
     add_cover(tags, args.cover)
     add_delta_meta(tags)
 
-    module = add_visualizer_module(tags, args.module_path)
-    if not module:
-        print("[!] Aborting: invalid module")
-        return 1
+    if args.theme_path:
+        theme = add_theme(tags, args.theme_path)
+        if not theme:
+            print("[!] Aborting: invalid theme")
+            return 1
 
-    add_binary(tags, module["binaryRef"], args.binary_path)
+    if args.module_path:
+        if not args.binary_path:
+            print("[!] --module requires --binary")
+            return 1
 
-    for _, reference_id in module.get("dataRefs", {}).items():
-        path = data_paths.get(reference_id)
-        if path:
-            add_data(tags, reference_id, path)
-        else:
-            print(f"[!] Missing data file for ref '{reference_id}'")
+        module = add_visualizer_module(tags, args.module_path)
+        if not module:
+            print("[!] Aborting: invalid module")
+            return 1
+
+        add_binary(tags, module["binaryRef"], args.binary_path)
+
+        for _, reference_id in module.get("dataRefs", {}).items():
+            path = data_paths.get(reference_id)
+            if path:
+                add_data(tags, reference_id, path)
+            else:
+                print(f"[!] Missing data file for ref '{reference_id}'")
 
     add_lrc(tags, args.lrc_path)
     save_tags(tags, args.mp3_path, args.id3_version)

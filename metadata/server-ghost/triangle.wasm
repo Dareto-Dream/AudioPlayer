@@ -1,0 +1,23 @@
+(module
+ (type $render_t (func (param f32) (result f32)))
+ (func $triangle/render (type $render_t) (param $time f32) (result f32)
+  (local $phase f32)
+  local.get $time
+  f32.const 0.85
+  f32.mul
+  local.tee $phase
+  local.get $phase
+  f32.floor
+  f32.sub
+  local.set $phase
+  f32.const 1
+  local.get $phase
+  f32.const 0.5
+  f32.sub
+  f32.abs
+  f32.const 4
+  f32.mul
+  f32.sub
+ )
+ (export "render" (func $triangle/render))
+)

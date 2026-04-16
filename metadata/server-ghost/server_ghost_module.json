@@ -1,0 +1,11 @@
+{
+  "id": "server-ghost-corridor",
+  "type": "visualizer",
+  "runtime": "wasm",
+  "entry": "render",
+  "binaryRef": "server_ghost_vis",
+  "dataRefs": {
+    "config": "server_ghost_config"
+  },
+  "version": "1.0.0"
+}
