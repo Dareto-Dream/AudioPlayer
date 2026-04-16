@@ -5,6 +5,7 @@ namespace AudioPlayer;
 
 public sealed class SpectrumVisualizerControl : Control
 {
+    private static readonly EmbeddedVisualizerRenderer embeddedVisualizerRenderer = new();
     private readonly float[] spectrumLevels = new float[64];
     private readonly float[] peakHoldLevels = new float[64];
     private readonly float[] waveformPoints = new float[256];
@@ -19,6 +20,8 @@ public sealed class SpectrumVisualizerControl : Control
     private Image? albumArt;
     private float diskAngle;
     private float animationPhase;
+    private float playbackTimeSeconds;
+    private EmbeddedVisualizerSession? embeddedVisualizer;
 
     public SpectrumVisualizerControl()
     {
@@ -96,6 +99,20 @@ public sealed class SpectrumVisualizerControl : Control
         }
     }
 
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public EmbeddedVisualizerContext? EmbeddedVisualizer
+    {
+        set
+        {
+            embeddedVisualizer?.Dispose();
+            embeddedVisualizer = EmbeddedVisualizerSession.TryCreate(value);
+            Invalidate();
+        }
+    }
+
+    [Browsable(false)]
+    public bool UsesEmbeddedVisualizer => embeddedVisualizer is { IsFaulted: false };
+
     [DefaultValue(1f)]
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
     public float Sensitivity
@@ -108,9 +125,10 @@ public sealed class SpectrumVisualizerControl : Control
         }
     }
 
-    public void UpdateFrame(VisualizerFrame frame, bool activePlayback)
+    public void UpdateFrame(VisualizerFrame frame, bool activePlayback, float playbackSeconds)
     {
         isActive = activePlayback;
+        playbackTimeSeconds = Math.Max(0, playbackSeconds);
 
         for (var index = 0; index < spectrumLevels.Length; index++)
         {
@@ -161,6 +179,7 @@ public sealed class SpectrumVisualizerControl : Control
         isActive = false;
         diskAngle = 0;
         animationPhase = 0;
+        playbackTimeSeconds = 0;
         Invalidate();
     }
 
@@ -174,6 +193,17 @@ public sealed class SpectrumVisualizerControl : Control
         var bounds = ClientRectangle;
         if (bounds.Width <= 0 || bounds.Height <= 0)
             return;
+
+        if (embeddedVisualizer is { IsFaulted: false } session)
+        {
+            var embeddedScene = CreateScene(session.DisplayLabel);
+            var instructions = session.Render(embeddedScene);
+            if (!session.IsFaulted)
+            {
+                embeddedVisualizerRenderer.Draw(e.Graphics, bounds, embeddedScene, instructions);
+                return;
+            }
+        }
 
         var definition = VisualizerCatalog.GetDefinition(mode);
         definition.Renderer.Draw(e.Graphics, bounds, CreateScene(definition.Label));
@@ -190,10 +220,22 @@ public sealed class SpectrumVisualizerControl : Control
             WaveformPoints = waveformPoints,
             PeakLevel = peakLevel,
             RmsLevel = rmsLevel,
+            PlaybackTimeSeconds = playbackTimeSeconds,
             IsActive = isActive,
             ShowPeaks = showPeaks,
             AlbumArt = albumArt,
             DiskAngle = diskAngle,
             AnimationPhase = animationPhase
         };
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            embeddedVisualizer?.Dispose();
+            embeddedVisualizer = null;
+        }
+
+        base.Dispose(disposing);
+    }
 }

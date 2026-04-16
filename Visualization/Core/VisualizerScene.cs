@@ -52,6 +52,7 @@ internal sealed class VisualizerScene
     public required float[] WaveformPoints { get; init; }
     public required float PeakLevel { get; init; }
     public required float RmsLevel { get; init; }
+    public required float PlaybackTimeSeconds { get; init; }
     public required bool IsActive { get; init; }
     public required bool ShowPeaks { get; init; }
     public required Image? AlbumArt { get; init; }

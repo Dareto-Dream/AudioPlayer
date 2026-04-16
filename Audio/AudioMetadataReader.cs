@@ -12,13 +12,16 @@ internal static class AudioMetadataReader
         {
             using var file = TagLib.File.Create(path);
             var tag = file.Tag;
+            var id3Tag = file.GetTag(TagTypes.Id3v2, false) as TagLib.Id3v2.Tag;
+            var embeddedVisualizer = EmbeddedVisualizerMetadataReader.Read(id3Tag);
 
             return new AudioFileMetadata(
                 Normalize(tag.Title),
                 FirstNonEmpty(JoinDistinct(tag.Performers), JoinDistinct(tag.AlbumArtists), JoinDistinct(tag.Composers)),
                 Normalize(tag.Album),
                 ExtractAlbumArt(tag.Pictures),
-                ExtractLyrics(file, path));
+                ExtractLyrics(id3Tag, path, embeddedVisualizer),
+                embeddedVisualizer);
         }
         catch
         {
@@ -63,9 +66,12 @@ internal static class AudioMetadataReader
             : null;
     }
 
-    private static LyricsDocument? ExtractLyrics(TagLib.File file, string path)
+    private static LyricsDocument? ExtractLyrics(
+        TagLib.Id3v2.Tag? id3Tag,
+        string path,
+        EmbeddedVisualizerContext? embeddedVisualizer)
     {
-        var embeddedLyrics = ExtractEmbeddedLyrics(file);
+        var embeddedLyrics = ExtractEmbeddedLyrics(id3Tag, embeddedVisualizer);
         if (embeddedLyrics is not null)
         {
             return embeddedLyrics;
@@ -87,9 +93,18 @@ internal static class AudioMetadataReader
         }
     }
 
-    private static LyricsDocument? ExtractEmbeddedLyrics(TagLib.File file)
+    private static LyricsDocument? ExtractEmbeddedLyrics(
+        TagLib.Id3v2.Tag? id3Tag,
+        EmbeddedVisualizerContext? embeddedVisualizer)
     {
-        var id3Tag = file.GetTag(TagTypes.Id3v2, false) as TagLib.Id3v2.Tag;
+        var structuredLyrics = LrcParser.Parse(
+            EmbeddedLyricsDataReader.TryExtractStructuredLyricsText(embeddedVisualizer),
+            "Structured lyrics");
+        if (structuredLyrics is not null)
+        {
+            return structuredLyrics;
+        }
+
         if (id3Tag is null)
         {
             return null;
@@ -135,7 +150,8 @@ internal sealed record AudioFileMetadata(
     string? Artist,
     string? Album,
     byte[]? AlbumArtBytes,
-    LyricsDocument? Lyrics)
+    LyricsDocument? Lyrics,
+    EmbeddedVisualizerContext? EmbeddedVisualizer)
 {
-    public static AudioFileMetadata Empty { get; } = new(null, null, null, null, null);
+    public static AudioFileMetadata Empty { get; } = new(null, null, null, null, null, null);
 }

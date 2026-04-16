@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Spectralis</id>
+    <version>1.0.0</version>
+    <authors>DeltaVDev</authors>
+    <description>Spectralis Audio Player</description>
+  </metadata>
+
+  <files>
+    <file src="publish\**\*" target="lib\net45" />
+  </files>
+</package>

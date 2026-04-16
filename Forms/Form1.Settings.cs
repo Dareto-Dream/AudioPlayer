@@ -119,6 +119,9 @@ public partial class Form1
         if (!appSettings.EnableVisualizerAutoCycle)
             return;
 
+        if (visualizerControl.UsesEmbeddedVisualizer)
+            return;
+
         if (!engine.IsLoaded || cmbVisualizerMode.Items.Count <= 1)
             return;
 
@@ -153,6 +156,11 @@ public partial class Form1
         appSettings.EnableVisualizerAutoCycle
             ? $"Visualizer mode (auto-cycles every {(int)VisualizerAutoCycleInterval.TotalSeconds} seconds)"
             : "Visualizer mode (auto-cycle disabled)";
+
+    private string GetVisualizerModeToolTip() =>
+        visualizerControl.UsesEmbeddedVisualizer
+            ? "Embedded visualizer metadata is active for this track. Built-in mode selection remains the fallback."
+            : GetVisualizerCycleToolTip();
 
     private void ShowSettingsDialog()
     {

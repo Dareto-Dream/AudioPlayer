@@ -7,6 +7,7 @@ public sealed record AudioTrackInfo(
     string? Album,
     byte[]? AlbumArtBytes,
     LyricsDocument? Lyrics,
+    EmbeddedVisualizerContext? EmbeddedVisualizer,
     string FormatName,
     int Channels,
     int SourceSampleRate,

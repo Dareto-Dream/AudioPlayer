@@ -40,7 +40,7 @@ public partial class Form1
         ThemeControlStyler.ApplySliderTheme(trackBarSeek, themePalette);
         ThemeControlStyler.ApplySliderTheme(trackBarVolume, themePalette);
         ThemeControlStyler.ApplySliderTheme(trackBarSensitivity, themePalette);
-        toolTip1.SetToolTip(cmbVisualizerMode, GetVisualizerCycleToolTip());
+        toolTip1.SetToolTip(cmbVisualizerMode, GetVisualizerModeToolTip());
         ApplyMenuTheme(menuStrip1.Items);
         visualizerControl.ApplyTheme(themePalette);
         lyricsView.ApplyTheme(themePalette);

@@ -18,6 +18,7 @@ public partial class Form1
         visualizerAlbumArt?.Dispose();
         visualizerAlbumArt = track?.AlbumArtBytes is { Length: > 0 } bytes ? TryLoadArtwork(bytes) : null;
         visualizerControl.AlbumArt = visualizerAlbumArt;
+        visualizerControl.EmbeddedVisualizer = track?.EmbeddedVisualizer;
         RefreshVisualizerModeOptions(appSettings.DefaultVisualizer);
     }
 

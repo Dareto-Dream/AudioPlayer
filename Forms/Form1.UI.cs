@@ -24,7 +24,7 @@ public partial class Form1
 
     private void UpdateVisualizer()
     {
-        visualizerControl.UpdateFrame(engine.GetVisualizerFrame(), engine.IsPlaying);
+        visualizerControl.UpdateFrame(engine.GetVisualizerFrame(), engine.IsPlaying, engine.GetPosition());
     }
 
     private void UpdateUiState()
@@ -78,6 +78,7 @@ public partial class Form1
             : $"Output  {GetSelectedSampleRateLabel()}";
         toolStripOutputLabel.ForeColor = engine.IsLoaded ? TextSecondaryColor : TextMutedColor;
         toolStripHintLabel.ForeColor = TextMutedColor;
+        toolTip1.SetToolTip(cmbVisualizerMode, GetVisualizerModeToolTip());
 
         UpdateMenuState();
         Text = track is null ? "Audio Player" : BuildWindowTitle(track);
@@ -112,6 +113,8 @@ public partial class Form1
 
     private static string BuildTrackInfoText(AudioTrackInfo? track)
     {
+        const string separator = "  \u00B7  ";
+
         if (track is null)
         {
             return "Supports MP3, WAV, FLAC, AAC, M4A, WMA, OGG Vorbis, AIFF, Opus, WebM, 3GP and more through installed Windows codecs.";
@@ -125,24 +128,29 @@ public partial class Form1
             descriptiveParts.Add(track.Album);
 
         var technicalLine =
-            $"{track.FormatName}  ·  {track.Channels} ch  ·  {track.SourceSampleRate / 1000d:0.#} kHz  ·  {FormatBitDepth(track.BitsPerSample)}  ·  {FormatTime((float)track.Duration.TotalSeconds)}";
+            $"{track.FormatName}{separator}{track.Channels} ch{separator}{track.SourceSampleRate / 1000d:0.#} kHz{separator}{FormatBitDepth(track.BitsPerSample)}{separator}{FormatTime((float)track.Duration.TotalSeconds)}";
 
         if (track.Lyrics is not null)
         {
             technicalLine += track.Lyrics.HasWordTimings
-                ? "  ·  Enhanced lyrics"
-                : "  ·  Synced lyrics";
+                ? $"{separator}Enhanced lyrics"
+                : $"{separator}Synced lyrics";
+        }
+
+        if (track.EmbeddedVisualizer is not null)
+        {
+            technicalLine += $"{separator}Embedded visualizer";
         }
 
         return descriptiveParts.Count == 0
             ? technicalLine
-            : $"{string.Join("  ·  ", descriptiveParts)}{Environment.NewLine}{technicalLine}";
+            : $"{string.Join(separator, descriptiveParts)}{Environment.NewLine}{technicalLine}";
     }
 
     private static string BuildWindowTitle(AudioTrackInfo track) =>
         string.IsNullOrWhiteSpace(track.Artist)
-            ? $"{track.DisplayName}  —  Audio Player"
-            : $"{track.Artist} - {track.DisplayName}  —  Audio Player";
+            ? $"{track.DisplayName}  \u2014  Audio Player"
+            : $"{track.Artist} - {track.DisplayName}  \u2014  Audio Player";
 
     private void SetLyricsVisible(bool visible)
     {
