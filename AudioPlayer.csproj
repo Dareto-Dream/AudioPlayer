@@ -16,11 +16,41 @@
     <PackageReference Include="TagLibSharp" Version="2.3.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="Forms\Form1.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\Form1.Artwork.cs">
+      <DependentUpon>Form1.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Forms\Form1.Designer.cs">
+      <DependentUpon>Form1.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Forms\Form1.Events.cs">
+      <DependentUpon>Form1.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Forms\Form1.Playback.cs">
+      <DependentUpon>Form1.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Forms\Form1.Settings.cs">
+      <DependentUpon>Form1.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Forms\Form1.Theme.cs">
+      <DependentUpon>Form1.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Forms\Form1.UI.cs">
+      <DependentUpon>Form1.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Forms\SettingsDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+  </ItemGroup>
+
   <Target Name="GenerateApplicationIcon"
           BeforeTargets="PrepareResources"
-          Inputs="icon.png"
+          Inputs="Assets\icon.png"
           Outputs="$(GeneratedApplicationIcon)">
-    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\build\Generate-Icon.ps1&quot; -Source &quot;$(MSBuildProjectDirectory)\icon.png&quot; -Destination &quot;$(MSBuildProjectDirectory)\$(GeneratedApplicationIcon)&quot;" />
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\build\Generate-Icon.ps1&quot; -Source &quot;$(MSBuildProjectDirectory)\Assets\icon.png&quot; -Destination &quot;$(MSBuildProjectDirectory)\$(GeneratedApplicationIcon)&quot;" />
   </Target>
 
 </Project>
