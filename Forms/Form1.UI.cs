@@ -25,6 +25,13 @@ public partial class Form1
     private void UpdateVisualizer()
     {
         visualizerControl.UpdateFrame(engine.GetVisualizerFrame(), engine.IsPlaying, engine.GetPosition());
+
+        // Sync embedded video position with audio playback
+        if (embeddedContentControl?.HasContent == true)
+        {
+            var position = engine.GetPosition();
+            _ = embeddedContentControl.SyncVideoPosition(position);
+        }
     }
 
     private void UpdateUiState()

@@ -33,6 +33,7 @@ internal sealed class AppSettings
     public bool UseEmbeddedTrackThemes { get; set; } = true;
     public VisualizerMode DefaultVisualizer { get; set; } = VisualizerMode.MirrorSpectrum;
     public bool UseEmbeddedTrackVisualizers { get; set; } = true;
+    public bool UseEmbeddedTrackContent { get; set; } = true;
     public int PreferredSampleRate { get; set; }
     public int DefaultVolume { get; set; } = 85;
     public bool PeakHold { get; set; } = true;
@@ -50,6 +51,7 @@ internal sealed class AppSettings
             UseEmbeddedTrackThemes = UseEmbeddedTrackThemes,
             DefaultVisualizer = DefaultVisualizer,
             UseEmbeddedTrackVisualizers = UseEmbeddedTrackVisualizers,
+            UseEmbeddedTrackContent = UseEmbeddedTrackContent,
             PreferredSampleRate = PreferredSampleRate,
             DefaultVolume = DefaultVolume,
             PeakHold = PeakHold,

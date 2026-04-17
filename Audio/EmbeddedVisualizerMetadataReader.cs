@@ -10,11 +10,14 @@ internal static class EmbeddedVisualizerMetadataReader
     private const string BinaryPrefix = "DELTA_BIN_";
     private const string DataPrefix = "DELTA_DATA_";
 
-    public static EmbeddedVisualizerContext? Read(TagLib.Id3v2.Tag? id3Tag)
+    /// <summary>
+    /// Reads all embedded modules from ID3v2 tags and returns them sorted by type.
+    /// </summary>
+    public static (EmbeddedVisualizerContext? Visualizer, EmbeddedHtmlContext? Html, EmbeddedMarkdownContext? Markdown, EmbeddedVideoContext? Video) TryReadAll(TagLib.Id3v2.Tag? id3Tag)
     {
         if (id3Tag is null)
         {
-            return null;
+            return (null, null, null, null);
         }
 
         var modulePayloads = new List<string>();
@@ -62,6 +65,11 @@ internal static class EmbeddedVisualizerMetadataReader
             }
         }
 
+        EmbeddedVisualizerContext? visualizer = null;
+        EmbeddedHtmlContext? html = null;
+        EmbeddedMarkdownContext? markdown = null;
+        EmbeddedVideoContext? video = null;
+
         foreach (var modulePayload in modulePayloads)
         {
             var module = TryParseModule(modulePayload, binaries);
@@ -70,10 +78,47 @@ internal static class EmbeddedVisualizerMetadataReader
                 continue;
             }
 
-            return new EmbeddedVisualizerContext(module, binary, dataBlocks);
+            var moduleType = module.Type?.ToLowerInvariant() ?? "";
+
+            switch (moduleType)
+            {
+                case "visualizer":
+                    if (module.Runtime?.ToLowerInvariant() == "wasm")
+                    {
+                        visualizer = new EmbeddedVisualizerContext(module, binary, dataBlocks);
+                    }
+                    break;
+
+                case "html":
+                    html = new EmbeddedHtmlContext(module.Id, binary, module.Version);
+                    break;
+
+                case "markdown":
+                    var cssOverride = GetOptionalDataBlock(module, "style", dataBlocks);
+                    markdown = new EmbeddedMarkdownContext(module.Id, binary, cssOverride, module.Version);
+                    break;
+
+                case "video":
+                    video = new EmbeddedVideoContext(
+                        module.Id,
+                        module.Runtime ?? "h264",
+                        binary,
+                        module.Width,
+                        module.Height,
+                        module.Autoplay,
+                        module.Loop,
+                        module.Version);
+                    break;
+            }
         }
 
-        return null;
+        return (visualizer, html, markdown, video);
+    }
+
+    public static EmbeddedVisualizerContext? Read(TagLib.Id3v2.Tag? id3Tag)
+    {
+        var (visualizer, _, _, _) = TryReadAll(id3Tag);
+        return visualizer;
     }
 
     private static EmbeddedVisualizerModule? TryParseModule(
@@ -88,32 +133,43 @@ internal static class EmbeddedVisualizerMetadataReader
         var id = ReadRequiredString(jsonObject, "id");
         var type = ReadRequiredString(jsonObject, "type");
         var runtime = ReadRequiredString(jsonObject, "runtime");
-        var entry = ReadRequiredString(jsonObject, "entry");
+        var entry = ReadOptionalString(jsonObject, "entry");
         var binaryRef = ReadRequiredString(jsonObject, "binaryRef");
-        if (string.IsNullOrWhiteSpace(id) ||
-            string.IsNullOrWhiteSpace(type) ||
-            string.IsNullOrWhiteSpace(runtime) ||
-            string.IsNullOrWhiteSpace(entry) ||
-            string.IsNullOrWhiteSpace(binaryRef))
+
+        // For WASM visualizers, entry is required. For other types, it's optional.
+        var isVisualizer = string.Equals(type, "visualizer", StringComparison.OrdinalIgnoreCase);
+        if (isVisualizer && string.IsNullOrWhiteSpace(entry))
         {
             return null;
         }
 
-        if (!string.Equals(type, "visualizer", StringComparison.OrdinalIgnoreCase) ||
-            !string.Equals(runtime, "wasm", StringComparison.OrdinalIgnoreCase) ||
+        if (string.IsNullOrWhiteSpace(id) ||
+            string.IsNullOrWhiteSpace(type) ||
+            string.IsNullOrWhiteSpace(runtime) ||
+            string.IsNullOrWhiteSpace(binaryRef) ||
             !binaries.ContainsKey(binaryRef))
         {
             return null;
         }
 
+        // Parse optional video/HTML dimension and playback attributes
+        var width = TryReadInteger(jsonObject, "width");
+        var height = TryReadInteger(jsonObject, "height");
+        var autoplay = TryReadBoolean(jsonObject, "autoplay", false);
+        var loop = TryReadBoolean(jsonObject, "loop", true);
+
         return new EmbeddedVisualizerModule(
             id,
             type,
             runtime,
-            entry,
+            entry ?? "",
             ReadDataRefs(jsonObject["dataRefs"]),
             binaryRef,
-            ReadOptionalString(jsonObject, "version"));
+            ReadOptionalString(jsonObject, "version"),
+            width,
+            height,
+            autoplay,
+            loop);
     }
 
     private static IReadOnlyDictionary<string, string> ReadDataRefs(JsonNode? node)
@@ -196,4 +252,40 @@ internal static class EmbeddedVisualizerMetadataReader
 
     private static string? Normalize(string? value) =>
         string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+    private static int? TryReadInteger(JsonObject jsonObject, string propertyName)
+    {
+        if (jsonObject[propertyName] is JsonValue jsonValue &&
+            jsonValue.TryGetValue<int>(out var intValue))
+        {
+            return intValue;
+        }
+
+        return null;
+    }
+
+    private static bool TryReadBoolean(JsonObject jsonObject, string propertyName, bool defaultValue)
+    {
+        if (jsonObject[propertyName] is JsonValue jsonValue &&
+            jsonValue.TryGetValue<bool>(out var boolValue))
+        {
+            return boolValue;
+        }
+
+        return defaultValue;
+    }
+
+    private static string? GetOptionalDataBlock(
+        EmbeddedVisualizerModule module,
+        string bindingName,
+        IReadOnlyDictionary<string, EmbeddedDataBlock> dataBlocks)
+    {
+        if (module.DataRefs.TryGetValue(bindingName, out var dataBlockId) &&
+            dataBlocks.TryGetValue(dataBlockId, out var dataBlock))
+        {
+            return dataBlock.RawText;
+        }
+
+        return null;
+    }
 }

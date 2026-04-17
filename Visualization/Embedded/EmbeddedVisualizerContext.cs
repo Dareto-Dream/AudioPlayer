@@ -11,7 +11,11 @@ internal sealed record EmbeddedVisualizerModule(
     string Entry,
     IReadOnlyDictionary<string, string> DataRefs,
     string BinaryRef,
-    string? Version);
+    string? Version,
+    int? Width = null,
+    int? Height = null,
+    bool Autoplay = false,
+    bool Loop = true);
 
 internal sealed class EmbeddedDataBlock
 {

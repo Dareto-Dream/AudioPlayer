@@ -13,7 +13,7 @@ internal static class AudioMetadataReader
             using var file = TagLib.File.Create(path);
             var tag = file.Tag;
             var id3Tag = file.GetTag(TagTypes.Id3v2, false) as TagLib.Id3v2.Tag;
-            var embeddedVisualizer = EmbeddedVisualizerMetadataReader.Read(id3Tag);
+            var (embeddedVisualizer, embeddedHtml, embeddedMarkdown, embeddedVideo) = EmbeddedVisualizerMetadataReader.TryReadAll(id3Tag);
             var embeddedTheme = EmbeddedThemeMetadataReader.Read(id3Tag);
 
             return new AudioFileMetadata(
@@ -23,7 +23,10 @@ internal static class AudioMetadataReader
                 ExtractAlbumArt(tag.Pictures),
                 ExtractLyrics(id3Tag, path, embeddedVisualizer),
                 embeddedVisualizer,
-                embeddedTheme);
+                embeddedTheme,
+                embeddedHtml,
+                embeddedMarkdown,
+                embeddedVideo);
         }
         catch
         {
@@ -154,7 +157,10 @@ internal sealed record AudioFileMetadata(
     byte[]? AlbumArtBytes,
     LyricsDocument? Lyrics,
     EmbeddedVisualizerContext? EmbeddedVisualizer,
-    EmbeddedThemeContext? EmbeddedTheme)
+    EmbeddedThemeContext? EmbeddedTheme,
+    EmbeddedHtmlContext? EmbeddedHtml,
+    EmbeddedMarkdownContext? EmbeddedMarkdown,
+    EmbeddedVideoContext? EmbeddedVideo)
 {
-    public static AudioFileMetadata Empty { get; } = new(null, null, null, null, null, null, null);
+    public static AudioFileMetadata Empty { get; } = new(null, null, null, null, null, null, null, null, null, null);
 }

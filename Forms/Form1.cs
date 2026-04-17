@@ -22,6 +22,7 @@ public partial class Form1 : Form
     private AudioTrackInfo? displayedArtworkTrack;
     private Image? visualizerAlbumArt;
     private long nextVisualizerCycleTick;
+    private EmbeddedContentControl? embeddedContentControl;
 
     public Form1(string? startupPath = null)
     {
@@ -30,10 +31,11 @@ public partial class Form1 : Form
         themePalette = ThemePalette.Create(appSettings.ThemeMode, appSettings.ThemeAccent);
 
         InitializeComponent();
-        HandleCreated += (_, _) =>
+        HandleCreated += async (_, _) =>
         {
             ApplyTheme();
             InitializeNowPlaying();
+            await InitializeEmbeddedContentAsync();
         };
         nextVisualizerCycleTick = Environment.TickCount64 + (long)VisualizerAutoCycleInterval.TotalMilliseconds;
         ApplyTheme();
@@ -73,5 +75,28 @@ public partial class Form1 : Form
         ShowError(
             $"The startup file could not be found:{Environment.NewLine}{Environment.NewLine}{startupPath}",
             "Open Error");
+    }
+
+    private async Task InitializeEmbeddedContentAsync()
+    {
+        embeddedContentControl = new EmbeddedContentControl
+        {
+            Visible = false,
+            Dock = DockStyle.Fill
+        };
+
+        // Add to the same panel as the visualizer control (visualizerPanel or similar)
+        // For now, we add it to the form itself as an overlay
+        Controls.Add(embeddedContentControl);
+        Controls.SetChildIndex(embeddedContentControl, 0);
+
+        try
+        {
+            await embeddedContentControl.InitializeAsync();
+        }
+        catch
+        {
+            // If WebView2 initialization fails, that's OK - the player still works with WASM visualizers
+        }
     }
 }

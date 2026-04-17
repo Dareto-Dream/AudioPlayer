@@ -23,6 +23,27 @@ public partial class Form1
         visualizerAlbumArt = track?.AlbumArtBytes is { Length: > 0 } bytes ? TryLoadArtwork(bytes) : null;
         visualizerControl.AlbumArt = visualizerAlbumArt;
         RefreshVisualizerModeOptions(appSettings.DefaultVisualizer);
+
+        // Load embedded HTML/Markdown/Video content
+        if (appSettings.UseEmbeddedTrackContent && embeddedContentControl is { IsReady: true })
+        {
+            if (track?.EmbeddedHtml is { } htmlContext)
+            {
+                embeddedContentControl.LoadHtmlContent(htmlContext);
+            }
+            else if (track?.EmbeddedMarkdown is { } markdownContext)
+            {
+                embeddedContentControl.LoadMarkdownContent(markdownContext);
+            }
+            else if (track?.EmbeddedVideo is { } videoContext)
+            {
+                embeddedContentControl.LoadVideoContent(videoContext);
+            }
+            else
+            {
+                embeddedContentControl.Clear();
+            }
+        }
     }
 
     private void DisposeDisplayedArtwork()
