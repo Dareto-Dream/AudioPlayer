@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3)",
+      "Bash(python3 metadata/main.py --mp3 metadata/server-ghost/server-ghost.mp3 --title server-ghost --artist streamertest --album AudioPlayer --cover metadata/server-ghost/server-ghost_thumb.png --module metadata/server-ghost/server_ghost_v2_module.json --binary metadata/server-ghost/server_ghost_v2_visualizer.wasm --data server_ghost_v2_config=metadata/server-ghost/server_ghost_v2_config.json --lrc metadata/server-ghost/server-ghost.lrc)"
+    ]
+  }
+}

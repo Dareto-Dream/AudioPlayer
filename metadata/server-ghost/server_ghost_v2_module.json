@@ -1,0 +1,11 @@
+{
+  "id": "ghost-in-the-signal",
+  "type": "visualizer",
+  "runtime": "wasm",
+  "entry": "render",
+  "binaryRef": "server_ghost_v2_vis",
+  "dataRefs": {
+    "config": "server_ghost_v2_config"
+  },
+  "version": "2.0.0"
+}

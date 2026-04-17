@@ -9,7 +9,11 @@
       "Bash(mv Spectrallis.csproj.user Spectrallis.csproj.user)",
       "Bash(ls -la *.sln *.csproj)",
       "Bash(ls -la *.csproj *.sln)",
-      "Bash(dotnet run *)"
+      "Bash(dotnet run *)",
+      "Bash(xxd \"c:/Users/steak/Documents/AudioPlayer/metadata/server-ghost/triangle.wasm\")",
+      "Bash(xxd \"c:/Users/steak/Documents/AudioPlayer/metadata/sorrow/clinic-sorrow_visualizer.wasm\")",
+      "Bash(xxd \"c:/Users/steak/Documents/AudioPlayer/metadata/server-ghost/server_ghost_visualizer.wasm\")",
+      "Bash(npm list *)"
     ]
   }
 }
