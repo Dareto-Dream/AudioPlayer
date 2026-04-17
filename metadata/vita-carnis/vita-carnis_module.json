@@ -1,0 +1,12 @@
+{
+  "id": "vita-carnis-observation",
+  "type": "visualizer",
+  "runtime": "wasm",
+  "entry": "render",
+  "binaryRef": "vita_carnis_vis",
+  "dataRefs": {
+    "config": "vita_carnis_config",
+    "lyrics": "vita_carnis_lrc"
+  },
+  "version": "1.0.0"
+}

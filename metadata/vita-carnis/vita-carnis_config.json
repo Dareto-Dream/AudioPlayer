@@ -1,0 +1,15 @@
+{
+  "name": "Vita Carnis Observation",
+  "color": "#B7E3D1",
+  "accent": "#C16B74",
+  "thickness": 2.0,
+  "amplitude": 82,
+  "sampleCount": 128,
+  "mood": "clinical nature documentary dissolving into mimicry, observation panic, and flesh-born uncanny valley",
+  "phases": {
+    "baselineStart": 0.0,
+    "irregularityStart": 139.0,
+    "mimicryStart": 167.0,
+    "containmentStart": 260.0
+  }
+}

@@ -18,11 +18,6 @@ internal static class EmbeddedThemeMetadataReader
 
         foreach (var frame in id3Tag.GetFrames<UserTextInformationFrame>())
         {
-            if (frame.TextEncoding != StringType.UTF8)
-            {
-                continue;
-            }
-
             var description = Normalize(frame.Description);
             var payload = JoinFrameText(frame.Text);
             if (string.IsNullOrWhiteSpace(description) ||
