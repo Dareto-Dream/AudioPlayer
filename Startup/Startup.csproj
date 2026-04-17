@@ -10,7 +10,7 @@
     <NoWarn>$(NoWarn);NU1701;NU1902</NoWarn>
     <AssemblyName>Spectralis</AssemblyName>
     <Product>Spectralis</Product>
-    <Version>1.1.0</Version>
+    <Version>1.2.0</Version>
     <SquirrelWindowsVersion>2.0.1</SquirrelWindowsVersion>
     <GeneratedApplicationIcon>$(BaseIntermediateOutputPath)generated\icon.ico</GeneratedApplicationIcon>
     <ApplicationIcon>$(GeneratedApplicationIcon)</ApplicationIcon>
